@@ -19,6 +19,24 @@ final class MockFrontmostTracker: FrontmostApplicationTracking {
     }
 }
 
+@MainActor
+final class MockTrustMonitor: AccessibilityTrustMonitoring {
+    var onPossibleTrustChange: (() -> Void)?
+    private(set) var isStarted = false
+
+    func start() { isStarted = true }
+    func stop() { isStarted = false }
+
+    /// Simulates the moment the user comes back from System Settings, or a wake.
+    func fire() { onPossibleTrustChange?() }
+}
+
+@MainActor
+final class MockSettingsOpener: SystemSettingsOpening {
+    private(set) var openCount = 0
+    func openAccessibilityPane() { openCount += 1 }
+}
+
 /// Test fixtures shared by the geometry and model suites.
 enum Fixtures {
 

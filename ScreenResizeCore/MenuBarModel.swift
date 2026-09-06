@@ -65,6 +65,13 @@ public final class MenuBarModel: ObservableObject {
     @Published public private(set) var state: MenuState = .permissionRequired
     @Published public private(set) var failureMessage: String?
 
+    /// Whether this process is currently trusted for Accessibility.
+    ///
+    /// Separate from `state` because onboarding presentation keys off trust
+    /// alone: a trusted app with no focused window is still perfectly set up and
+    /// must not be shown the onboarding window.
+    @Published public private(set) var isTrusted: Bool = false
+
     @Published public var sizingMode: SizingMode {
         didSet {
             guard sizingMode != oldValue else { return }
@@ -78,6 +85,8 @@ public final class MenuBarModel: ObservableObject {
     private let screens: ScreenProviding
     private let frontmostTracker: FrontmostApplicationTracking
     private let defaults: UserDefaults
+    private let trustMonitor: AccessibilityTrustMonitoring
+    private let settingsOpener: SystemSettingsOpening
 
     /// The display the target window currently occupies. Established by
     /// `refresh()`; nil whenever there is no usable window.
@@ -87,15 +96,28 @@ public final class MenuBarModel: ObservableObject {
         windowManager: WindowManaging,
         screens: ScreenProviding,
         frontmostTracker: FrontmostApplicationTracking,
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        trustMonitor: AccessibilityTrustMonitoring = SystemTrustMonitor(),
+        settingsOpener: SystemSettingsOpening = WorkspaceSettingsOpener()
     ) {
         self.windowManager = windowManager
         self.screens = screens
         self.frontmostTracker = frontmostTracker
         self.defaults = defaults
+        self.trustMonitor = trustMonitor
+        self.settingsOpener = settingsOpener
         self.sizingMode = defaults.string(forKey: Self.sizingModeDefaultsKey)
             .flatMap(SizingMode.init(rawValue:)) ?? .logical
+        self.isTrusted = windowManager.isProcessTrusted()
+
+        // Re-check whenever trust may have changed, so a permission granted in
+        // System Settings takes effect without relaunching the app.
+        self.trustMonitor.onPossibleTrustChange = { [weak self] in
+            self?.handlePossibleTrustChange()
+        }
+        self.trustMonitor.start()
     }
+
 
     // MARK: - Refresh
 
@@ -103,6 +125,20 @@ public final class MenuBarModel: ObservableObject {
     /// only then — nothing here is polled or scheduled.
     public func refresh() {
         failureMessage = nil
+        isTrusted = windowManager.isProcessTrusted()
+        reloadSnapshot()
+    }
+
+    /// Called by the trust monitor. Acts only on a genuine change.
+    ///
+    /// Deliberately not a full `refresh()`: these notifications fire on ordinary
+    /// app activation, and clearing `failureMessage` every time the user tabbed
+    /// away and back would wipe the explanation of a resize that had just been
+    /// refused.
+    private func handlePossibleTrustChange() {
+        let trusted = windowManager.isProcessTrusted()
+        guard trusted != isTrusted else { return }
+        isTrusted = trusted
         reloadSnapshot()
     }
 
@@ -111,6 +147,7 @@ public final class MenuBarModel: ObservableObject {
     private func reloadSnapshot() {
         guard windowManager.isProcessTrusted() else {
             currentDisplay = nil
+            isTrusted = false
             state = .permissionRequired
             return
         }
@@ -254,8 +291,18 @@ public final class MenuBarModel: ObservableObject {
     // MARK: - Permission
 
     /// Prompts for Accessibility permission and re-evaluates.
+    ///
+    /// The system prompt appears at most once per app identity. Once a user has
+    /// dismissed or denied it, this silently does nothing forever — which is why
+    /// `openAccessibilitySettings()` exists alongside it rather than as a
+    /// redundant second route.
     public func requestPermission() {
         _ = windowManager.promptForAccessibilityPermission()
         refresh()
+    }
+
+    /// Opens System Settings at Privacy & Security → Accessibility.
+    public func openAccessibilitySettings() {
+        settingsOpener.openAccessibilityPane()
     }
 }

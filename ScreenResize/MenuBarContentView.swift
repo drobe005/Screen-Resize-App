@@ -10,11 +10,8 @@ import ScreenResizeCore
 /// per CLAUDE.md.
 struct MenuBarContentView: View {
 
-    @StateObject private var model = MenuBarModel(
-        windowManager: AXWindowManager(),
-        screens: NSScreenProvider(),
-        frontmostTracker: WorkspaceFrontmostTracker()
-    )
+    // Shared with the onboarding window, so trust changes reach both at once.
+    @EnvironmentObject private var model: MenuBarModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {

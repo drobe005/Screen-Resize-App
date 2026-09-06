@@ -36,28 +36,71 @@ Override the location with `SCREENRESIZE_DERIVED_DATA` if needed. Do not "fix" a
 recurrence of this error with `xattr -cr` — that treats the symptom and it will come
 back on the next build.
 
-### Accessibility permission is invalidated by every rebuild
+### Accessibility permission is bound to the binary signature
 
 Anything that touches windows needs ScreenResize to be trusted in
-System Settings > Privacy & Security > Accessibility. Grant it against the built app at
-`~/Library/Developer/Xcode/DerivedData/ScreenResize/Build/Products/Debug/ScreenResize.app`.
+System Settings > Privacy & Security > Accessibility.
 
-The grant does not survive rebuilds. There is no Developer ID on this machine, so the app
-is ad-hoc signed, and every build produces a new code hash. macOS keys the permission to
-that hash, so after a rebuild the entry still appears in the list and looks enabled while
-silently no longer applying.
+**The grant does not survive a rebuild.** This is not a quirk, it is exactly what the
+signature says. Measured on a normal Debug build:
+
+```
+$ codesign -d -r- ScreenResize.app
+# designated => cdhash H"68da219988da65029f94b556b86c070497e279ff"
+
+$ codesign -dvv ScreenResize.app
+Signature=adhoc          TeamIdentifier=not set
+```
+
+The designated requirement is **a bare cdhash** — no identifier, no certificate. There is no
+Developer ID on this machine, so the app is ad-hoc signed, and TCC has nothing stabler than
+the code hash to match a grant against. Every build produces a new hash, so every build
+silently invalidates the grant while the entry still sits in the list looking enabled.
 
 The symptom is `WindowManagerError.permissionDenied`, or an AX call returning
-`kAXErrorAPIDisabled` (-25211), from a build that worked minutes earlier. The fix is to
-remove ScreenResize from the Accessibility list, re-add it, and toggle it on. Expect to do
-this after most rebuilds until a stable signing identity exists.
+`kAXErrorAPIDisabled` (-25211), from a build that worked minutes earlier.
+
+#### The real fix: sign with a self-signed certificate
+
+Give the binary a stable identity and the requirement stops being hash-based:
+
+```
+# after (illustrative):
+# designated => identifier "com.deiondrickroberts.ScreenResize"
+#               and certificate leaf = H"..."
+```
+
+That requirement survives rebuilds, so the grant does too. Create the certificate once:
+
+1. Keychain Access → Certificate Assistant → **Create a Certificate…**
+2. Name `ScreenResize Dev`, Identity Type **Self Signed Root**, Certificate Type **Code Signing**
+3. Create, then set `CODE_SIGN_IDENTITY = "ScreenResize Dev"` in the project's Debug configuration
+4. Rebuild and confirm with `codesign -d -r-` that the requirement now names the certificate
+
+This needs the Keychain Access GUI and an admin prompt, so it is a human step. It has not been
+performed on this machine yet — the requirement above is what the certificate *will* produce,
+not something measured here.
+
+#### The fallback: reset and re-grant
+
+Until that certificate exists, the fastest recovery is one command rather than toggling
+switches in System Settings:
+
+```bash
+tccutil reset Accessibility com.deiondrickroberts.ScreenResize
+```
+
+Then relaunch and grant again. The app's onboarding window reappears automatically when it is
+untrusted, and dismisses itself once permission is granted — no relaunch needed after granting.
 
 ---
 
 ## Stack
 
 - Swift 5.9+
-- SwiftUI, `MenuBarExtra` as the app's only scene
+- SwiftUI. `MenuBarExtra` is the app's only scene in normal use; a second `Window`
+  scene exists solely for first-run onboarding and is shown only while the app is
+  untrusted for Accessibility
 - Minimum deployment target: macOS 14
 - Window control via the Accessibility API (`AXUIElement`)
 - Built and tested exclusively from the command line with `xcodebuild`

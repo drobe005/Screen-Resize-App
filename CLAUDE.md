@@ -36,6 +36,22 @@ Override the location with `SCREENRESIZE_DERIVED_DATA` if needed. Do not "fix" a
 recurrence of this error with `xattr -cr` — that treats the symptom and it will come
 back on the next build.
 
+### Accessibility permission is invalidated by every rebuild
+
+Anything that touches windows needs ScreenResize to be trusted in
+System Settings > Privacy & Security > Accessibility. Grant it against the built app at
+`~/Library/Developer/Xcode/DerivedData/ScreenResize/Build/Products/Debug/ScreenResize.app`.
+
+The grant does not survive rebuilds. There is no Developer ID on this machine, so the app
+is ad-hoc signed, and every build produces a new code hash. macOS keys the permission to
+that hash, so after a rebuild the entry still appears in the list and looks enabled while
+silently no longer applying.
+
+The symptom is `WindowManagerError.permissionDenied`, or an AX call returning
+`kAXErrorAPIDisabled` (-25211), from a build that worked minutes earlier. The fix is to
+remove ScreenResize from the Accessibility list, re-add it, and toggle it on. Expect to do
+this after most rebuilds until a stable signing identity exists.
+
 ---
 
 ## Stack

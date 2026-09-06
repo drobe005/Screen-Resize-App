@@ -137,6 +137,14 @@ One source of truth for every preset (resolution, aspect ratio, label). UI code
 reads from it. **Never hardcode a resolution in UI code** — no `1920`, `1080`,
 `16:9` literal in any view.
 
+This is enforced mechanically, not by review. `scripts/check-ui-literals.sh` scans
+the `ScreenResize/` app target for resolution-shaped numbers and runs as the first
+step of `scripts/test.sh`. Comments are stripped before scanning; string literals
+are not, because a hardcoded `"1920x1080"` in a view is exactly the violation.
+
+If it flags a legitimate layout number, name the constant rather than widening the
+script's exclusions.
+
 ### All geometry math is pure
 
 Every calculation — aspect ratio fitting, point/pixel conversion, centering,

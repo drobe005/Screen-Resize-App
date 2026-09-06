@@ -35,6 +35,10 @@ if [ ! -d "$PROJECT" ]; then
   exit 1
 fi
 
+# Enforce CLAUDE.md's no-resolution-literals-in-UI rule before compiling anything.
+# A violation here is a design error, not a test failure, so it fails fast.
+"$REPO_ROOT/scripts/check-ui-literals.sh"
+
 echo "==> Testing $SCHEME ($CONFIGURATION)"
 
 XCODEBUILD_ARGS=(

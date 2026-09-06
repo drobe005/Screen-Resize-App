@@ -46,6 +46,13 @@ public protocol WindowManaging: AnyObject {
     /// - Throws: `.permissionDenied`, `.noFrontmostApp`.
     func frontmostApplication() throws -> ApplicationHandle
 
+    /// A handle for a specific process.
+    ///
+    /// Callers driven by a menu need this: by the time a menu item is clicked,
+    /// the frontmost application may be ScreenResize itself, so the target has
+    /// to be named explicitly rather than asked for.
+    func application(withProcessIdentifier pid: pid_t, localizedName: String?) -> ApplicationHandle
+
     /// The focused window of `application`.
     /// - Throws: `.permissionDenied`, `.noFocusedWindow`, `.attributeUnavailable`,
     ///   `.unsupportedHandle`.

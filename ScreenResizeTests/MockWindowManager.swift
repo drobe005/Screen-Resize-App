@@ -53,6 +53,12 @@ final class MockWindowManager: WindowManaging {
         return frontmostApp
     }
 
+    func application(
+        withProcessIdentifier pid: pid_t, localizedName: String?
+    ) -> ApplicationHandle {
+        MockApplicationHandle(processIdentifier: pid, localizedName: localizedName)
+    }
+
     func focusedWindow(of application: ApplicationHandle) throws -> WindowHandle {
         guard isTrusted else { throw WindowManagerError.permissionDenied }
         guard application is MockApplicationHandle else { throw WindowManagerError.unsupportedHandle }

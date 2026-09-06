@@ -13,4 +13,12 @@ public enum SizingMode: String, CaseIterable, Sendable {
     /// exactly the preset's pixel dimensions — 3840x2160 on a 2x display becomes
     /// a 1920x1080 point window that captures at 3840x2160 pixels.
     case capture
+
+    /// Title shown in the menu's mode picker.
+    public var menuTitle: String {
+        switch self {
+        case .logical: return "Logical"
+        case .capture: return "Capture"
+        }
+    }
 }

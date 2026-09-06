@@ -165,15 +165,12 @@ public enum WindowGeometry {
     public static func clamped(
         _ frame: PointFrame, to display: DisplayGeometry
     ) -> (frame: PointFrame, adjustment: ClampAdjustment) {
-        let visible = display.visibleFrameInAppKitPoints
-        let primaryHeight = display.primaryDisplayHeightInPoints
+        let visible = visibleRectInAXSpace(of: display)
 
-        // The visible area expressed in AX space. Its top edge is the flip of the
-        // AppKit rect's top edge, so the two y bounds swap roles.
         let minX = visible.origin.xInPoints
-        let maxX = visible.maxXInPoints
-        let minY = primaryHeight - visible.maxYInPoints
-        let maxY = primaryHeight - visible.origin.yInPoints
+        let maxX = visible.origin.xInPoints + visible.size.widthInPoints
+        let minY = visible.origin.yInPoints
+        let maxY = visible.origin.yInPoints + visible.size.heightInPoints
 
         let availableWidth = maxX - minX
         let availableHeight = maxY - minY
@@ -211,5 +208,54 @@ public enum WindowGeometry {
             PointFrame(origin: AXPointOrigin(xInPoints: x, yInPoints: y), size: size),
             adjustment
         )
+    }
+
+    // MARK: - Display selection
+
+    /// The display's visible area expressed in Accessibility space.
+    ///
+    /// The AppKit rect's TOP edge becomes the AX rect's origin, because the two
+    /// spaces anchor opposite edges. Extracted so display selection and clamping
+    /// share one definition of "where this display actually is".
+    public static func visibleRectInAXSpace(of display: DisplayGeometry) -> PointFrame {
+        let visible = display.visibleFrameInAppKitPoints
+        let topLeft = axOrigin(
+            fromAppKit: visible.origin,
+            heightInPoints: visible.size.heightInPoints,
+            primaryDisplayHeightInPoints: display.primaryDisplayHeightInPoints
+        )
+        return PointFrame(origin: topLeft, size: visible.size)
+    }
+
+    /// The display a window most occupies, by overlapping area.
+    ///
+    /// Area rather than the window's centre: a window dragged across a boundary
+    /// should follow whichever display holds most of it, and a centre-point test
+    /// flips abruptly at the halfway line.
+    ///
+    /// Returns nil when the frame overlaps no display at all, which the caller
+    /// must handle rather than guessing a default.
+    public static func displayContaining(
+        _ frame: PointFrame, among displays: [DisplayGeometry]
+    ) -> DisplayGeometry? {
+        var best: (display: DisplayGeometry, area: CGFloat)?
+        for display in displays {
+            let area = overlapArea(frame, visibleRectInAXSpace(of: display))
+            guard area > 0 else { continue }
+            if area > (best?.area ?? 0) { best = (display, area) }
+        }
+        return best?.display
+    }
+
+    /// Area shared by two AX-space rectangles. Zero when they do not overlap.
+    private static func overlapArea(_ a: PointFrame, _ b: PointFrame) -> CGFloat {
+        let overlapWidth = min(a.origin.xInPoints + a.size.widthInPoints,
+                               b.origin.xInPoints + b.size.widthInPoints)
+            - max(a.origin.xInPoints, b.origin.xInPoints)
+        let overlapHeight = min(a.origin.yInPoints + a.size.heightInPoints,
+                                b.origin.yInPoints + b.size.heightInPoints)
+            - max(a.origin.yInPoints, b.origin.yInPoints)
+        guard overlapWidth > 0, overlapHeight > 0 else { return 0 }
+        return overlapWidth * overlapHeight
     }
 }

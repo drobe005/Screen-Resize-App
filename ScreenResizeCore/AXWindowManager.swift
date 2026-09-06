@@ -62,6 +62,12 @@ public final class AXWindowManager: WindowManaging {
         )
     }
 
+    public func application(
+        withProcessIdentifier pid: pid_t, localizedName: String?
+    ) -> ApplicationHandle {
+        AXApplicationHandle(processIdentifier: pid, localizedName: localizedName)
+    }
+
     public func focusedWindow(of application: ApplicationHandle) throws -> WindowHandle {
         guard let application = application as? AXApplicationHandle else {
             throw WindowManagerError.unsupportedHandle

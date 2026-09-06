@@ -144,10 +144,10 @@ public final class AXWindowManager: WindowManaging {
         return PointSize(widthInPoints: size.width, heightInPoints: size.height)
     }
 
-    private func readOrigin(_ element: AXUIElement) throws -> PointOrigin {
+    private func readOrigin(_ element: AXUIElement) throws -> AXPointOrigin {
         var point = CGPoint.zero
         try readAXValue(element, attribute: kAXPositionAttribute as String, type: .cgPoint, into: &point)
-        return PointOrigin(xInPoints: point.x, yInPoints: point.y)
+        return AXPointOrigin(xInPoints: point.x, yInPoints: point.y)
     }
 
     private func write(size: PointSize, to element: AXUIElement) throws {
@@ -155,7 +155,7 @@ public final class AXWindowManager: WindowManaging {
         try writeAXValue(element, attribute: kAXSizeAttribute as String, type: .cgSize, from: &cgSize)
     }
 
-    private func write(origin: PointOrigin, to element: AXUIElement) throws {
+    private func write(origin: AXPointOrigin, to element: AXUIElement) throws {
         var cgPoint = CGPoint(x: origin.xInPoints, y: origin.yInPoints)
         try writeAXValue(element, attribute: kAXPositionAttribute as String, type: .cgPoint, from: &cgPoint)
     }

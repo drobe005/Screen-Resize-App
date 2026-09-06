@@ -18,7 +18,7 @@ final class WindowManagerTests: XCTestCase {
     }
 
     private let target = PointFrame(
-        origin: PointOrigin(xInPoints: 100, yInPoints: 50),
+        origin: AXPointOrigin(xInPoints: 100, yInPoints: 50),
         size: PointSize(widthInPoints: 1280, heightInPoints: 720)
     )
 
@@ -57,7 +57,7 @@ final class WindowManagerTests: XCTestCase {
 
     func testFrameIsReadInPoints() throws {
         manager.storedFrame = PointFrame(
-            origin: PointOrigin(xInPoints: 12, yInPoints: 34),
+            origin: AXPointOrigin(xInPoints: 12, yInPoints: 34),
             size: PointSize(widthInPoints: 640, heightInPoints: 480)
         )
         let window = try manager.focusedWindow(of: manager.frontmostApplication())

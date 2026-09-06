@@ -27,7 +27,7 @@ final class MockWindowManager: WindowManaging {
     )
     var focusedWindow: MockWindowHandle? = MockWindowHandle()
     var storedFrame = PointFrame(
-        origin: PointOrigin(xInPoints: 0, yInPoints: 0),
+        origin: AXPointOrigin(xInPoints: 0, yInPoints: 0),
         size: PointSize(widthInPoints: 800, heightInPoints: 600)
     )
     var applyBehavior: ApplyBehavior = .accept

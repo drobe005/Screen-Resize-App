@@ -1,0 +1,522 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		6000000000000000000000F1 /* ScreenResizeCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3000000000000000000000C2 /* ScreenResizeCore.framework */; };
+		6000000000000000000000F2 /* ScreenResizeCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3000000000000000000000C2 /* ScreenResizeCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		6000000000000000000000F3 /* ScreenResizeCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3000000000000000000000C2 /* ScreenResizeCore.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		7000000000000000000000A2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1000000000000000000000A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2000000000000000000000B2;
+			remoteInfo = ScreenResizeCore;
+		};
+		7000000000000000000000A4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1000000000000000000000A1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2000000000000000000000B2;
+			remoteInfo = ScreenResizeCore;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5000000000000000000000E4 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				6000000000000000000000F2 /* ScreenResizeCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		3000000000000000000000C1 /* ScreenResize.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenResize.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3000000000000000000000C2 /* ScreenResizeCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ScreenResizeCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		3000000000000000000000C3 /* ScreenResizeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScreenResizeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4000000000000000000000D4 /* Exceptions for "ScreenResize" folder in "ScreenResize" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				ScreenResize.entitlements,
+			);
+			target = 2000000000000000000000B1 /* ScreenResize */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4000000000000000000000D1 /* ScreenResize */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4000000000000000000000D4 /* Exceptions for "ScreenResize" folder in "ScreenResize" target */,
+			);
+			path = ScreenResize;
+			sourceTree = "<group>";
+		};
+		4000000000000000000000D2 /* ScreenResizeCore */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ScreenResizeCore;
+			sourceTree = "<group>";
+		};
+		4000000000000000000000D3 /* ScreenResizeTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ScreenResizeTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5000000000000000000000E2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6000000000000000000000F1 /* ScreenResizeCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5000000000000000000000E6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5000000000000000000000E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6000000000000000000000F3 /* ScreenResizeCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1000000000000000000000A2 = {
+			isa = PBXGroup;
+			children = (
+				4000000000000000000000D2 /* ScreenResizeCore */,
+				4000000000000000000000D1 /* ScreenResize */,
+				4000000000000000000000D3 /* ScreenResizeTests */,
+				1000000000000000000000A3 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1000000000000000000000A3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3000000000000000000000C2 /* ScreenResizeCore.framework */,
+				3000000000000000000000C1 /* ScreenResize.app */,
+				3000000000000000000000C3 /* ScreenResizeTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2000000000000000000000B1 /* ScreenResize */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8000000000000000000000B2 /* Build configuration list for PBXNativeTarget "ScreenResize" */;
+			buildPhases = (
+				5000000000000000000000E1 /* Sources */,
+				5000000000000000000000E2 /* Frameworks */,
+				5000000000000000000000E3 /* Resources */,
+				5000000000000000000000E4 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7000000000000000000000A1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4000000000000000000000D1 /* ScreenResize */,
+			);
+			name = ScreenResize;
+			productName = ScreenResize;
+			productReference = 3000000000000000000000C1 /* ScreenResize.app */;
+			productType = "com.apple.product-type.application";
+		};
+		2000000000000000000000B2 /* ScreenResizeCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8000000000000000000000B3 /* Build configuration list for PBXNativeTarget "ScreenResizeCore" */;
+			buildPhases = (
+				5000000000000000000000E5 /* Sources */,
+				5000000000000000000000E6 /* Frameworks */,
+				5000000000000000000000E7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4000000000000000000000D2 /* ScreenResizeCore */,
+			);
+			name = ScreenResizeCore;
+			productName = ScreenResizeCore;
+			productReference = 3000000000000000000000C2 /* ScreenResizeCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		2000000000000000000000B3 /* ScreenResizeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8000000000000000000000B4 /* Build configuration list for PBXNativeTarget "ScreenResizeTests" */;
+			buildPhases = (
+				5000000000000000000000E8 /* Sources */,
+				5000000000000000000000E9 /* Frameworks */,
+				5000000000000000000000EA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7000000000000000000000A3 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4000000000000000000000D3 /* ScreenResizeTests */,
+			);
+			name = ScreenResizeTests;
+			productName = ScreenResizeTests;
+			productReference = 3000000000000000000000C3 /* ScreenResizeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1000000000000000000000A1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					2000000000000000000000B1 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					2000000000000000000000B2 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					2000000000000000000000B3 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = 8000000000000000000000B1 /* Build configuration list for PBXProject "ScreenResize" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1000000000000000000000A2;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1000000000000000000000A3 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2000000000000000000000B2 /* ScreenResizeCore */,
+				2000000000000000000000B1 /* ScreenResize */,
+				2000000000000000000000B3 /* ScreenResizeTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5000000000000000000000E3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5000000000000000000000E7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5000000000000000000000EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5000000000000000000000E1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5000000000000000000000E5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5000000000000000000000E8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7000000000000000000000A1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2000000000000000000000B2 /* ScreenResizeCore */;
+			targetProxy = 7000000000000000000000A2 /* PBXContainerItemProxy */;
+		};
+		7000000000000000000000A3 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2000000000000000000000B2 /* ScreenResizeCore */;
+			targetProxy = 7000000000000000000000A4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		9000000000000000000000C1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		9000000000000000000000C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		9000000000000000000000C3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ScreenResize/ScreenResize.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ScreenResize/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.deiondrickroberts.ScreenResize;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		9000000000000000000000C4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ScreenResize/ScreenResize.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ScreenResize/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.deiondrickroberts.ScreenResize;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		9000000000000000000000C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.deiondrickroberts.ScreenResizeCore;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		9000000000000000000000C6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.deiondrickroberts.ScreenResizeCore;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		9000000000000000000000C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.deiondrickroberts.ScreenResizeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Debug;
+		};
+		9000000000000000000000C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.deiondrickroberts.ScreenResizeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8000000000000000000000B1 /* Build configuration list for PBXProject "ScreenResize" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9000000000000000000000C1 /* Debug */,
+				9000000000000000000000C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8000000000000000000000B2 /* Build configuration list for PBXNativeTarget "ScreenResize" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9000000000000000000000C3 /* Debug */,
+				9000000000000000000000C4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8000000000000000000000B3 /* Build configuration list for PBXNativeTarget "ScreenResizeCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9000000000000000000000C5 /* Debug */,
+				9000000000000000000000C6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8000000000000000000000B4 /* Build configuration list for PBXNativeTarget "ScreenResizeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9000000000000000000000C7 /* Debug */,
+				9000000000000000000000C8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1000000000000000000000A1 /* Project object */;
+}

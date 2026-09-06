@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- The Accessibility API cannot run inside the App Sandbox, so this app can
+	     never ship on the Mac App Store. Distribution is Developer ID signing
+	     plus notarization, shipped as a DMG. See CLAUDE.md, hard constraint 1.
+	     Stated explicitly as false so that re-enabling it shows up as a diff. -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+</dict>
+</plist>

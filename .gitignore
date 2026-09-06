@@ -1,0 +1,33 @@
+# Build products. scripts/build.sh and scripts/test.sh put DerivedData here.
+build/
+DerivedData/
+*.o
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.moved-aside
+
+# Xcode per-user state. The .xcodeproj itself and xcshareddata/ ARE committed:
+# the hand-written project.pbxproj and the shared scheme are the build.
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# Signing and notarization secrets. Never commit these.
+*.p12
+*.cer
+*.provisionprofile
+notarization-credentials

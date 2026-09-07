@@ -78,6 +78,16 @@ public final class MenuBarModel: ObservableObject {
     /// User-defined sizes, in the order they were added.
     @Published public private(set) var customSizes: [CustomSize] = []
 
+    /// Whether the app is registered to start at login. Read from the system,
+    /// never cached in preferences.
+    @Published public private(set) var launchesAtLogin: Bool = false
+
+    /// Why launch-at-login may be unavailable, if it is.
+    public var launchAtLoginAvailability: LoginItemAvailability { loginItem.availability }
+
+    /// Set when a launch-at-login change was refused.
+    @Published public private(set) var launchAtLoginError: String?
+
     @Published public var sizingMode: SizingMode {
         didSet {
             guard sizingMode != oldValue else { return }
@@ -91,6 +101,7 @@ public final class MenuBarModel: ObservableObject {
     private let preferences: PreferencesStore
     private let trustMonitor: AccessibilityTrustMonitoring
     private let settingsOpener: SystemSettingsOpening
+    private let loginItem: LoginItemManaging
 
     /// The display the target window currently occupies. Established by
     /// `refresh()`; nil whenever there is no usable window.
@@ -102,7 +113,8 @@ public final class MenuBarModel: ObservableObject {
         frontmostTracker: FrontmostApplicationTracking,
         preferences: PreferencesStore = PreferencesStore(),
         trustMonitor: AccessibilityTrustMonitoring = SystemTrustMonitor(),
-        settingsOpener: SystemSettingsOpening = WorkspaceSettingsOpener()
+        settingsOpener: SystemSettingsOpening = WorkspaceSettingsOpener(),
+        loginItem: LoginItemManaging = SMAppServiceLoginItem()
     ) {
         self.windowManager = windowManager
         self.screens = screens
@@ -110,9 +122,11 @@ public final class MenuBarModel: ObservableObject {
         self.preferences = preferences
         self.trustMonitor = trustMonitor
         self.settingsOpener = settingsOpener
+        self.loginItem = loginItem
         self.sizingMode = preferences.sizingMode
         self.favoriteResolutionIDs = preferences.favoriteResolutionIDs
         self.customSizes = preferences.customSizes
+        self.launchesAtLogin = loginItem.isEnabled
         self.isTrusted = windowManager.isProcessTrusted()
 
         // Re-check whenever trust may have changed, so a permission granted in
@@ -377,6 +391,22 @@ public final class MenuBarModel: ObservableObject {
     public func requestPermission() {
         _ = windowManager.promptForAccessibilityPermission()
         refresh()
+    }
+
+    /// Registers or unregisters the app as a login item.
+    ///
+    /// Re-reads the system afterwards rather than trusting the requested value,
+    /// so a refused registration cannot leave the toggle showing a lie.
+    public func setLaunchesAtLogin(_ enabled: Bool) {
+        do {
+            try loginItem.setEnabled(enabled)
+            launchAtLoginError = nil
+        } catch let error as LoginItemError {
+            if case .unavailable(let reason) = error { launchAtLoginError = reason }
+        } catch {
+            launchAtLoginError = "\(error)"
+        }
+        launchesAtLogin = loginItem.isEnabled
     }
 
     /// Opens System Settings at Privacy & Security → Accessibility.

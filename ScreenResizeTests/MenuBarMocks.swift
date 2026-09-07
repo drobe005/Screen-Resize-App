@@ -37,6 +37,20 @@ final class MockSettingsOpener: SystemSettingsOpening {
     func openAccessibilityPane() { openCount += 1 }
 }
 
+final class MockLoginItem: LoginItemManaging {
+    var availability: LoginItemAvailability = .available
+    var isEnabled = false
+    private(set) var setEnabledCalls: [Bool] = []
+
+    func setEnabled(_ enabled: Bool) throws {
+        setEnabledCalls.append(enabled)
+        if case .unavailable(let reason) = availability {
+            throw LoginItemError.unavailable(reason: reason)
+        }
+        isEnabled = enabled
+    }
+}
+
 /// Test fixtures shared by the geometry and model suites.
 enum Fixtures {
 

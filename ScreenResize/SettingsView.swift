@@ -39,6 +39,26 @@ private struct GeneralSettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Section {
+                Toggle("Launch at login", isOn: Binding(
+                    get: { model.launchesAtLogin },
+                    set: { model.setLaunchesAtLogin($0) }
+                ))
+                .disabled(!model.launchAtLoginAvailability.isAvailable)
+
+                if case .unavailable(let reason) = model.launchAtLoginAvailability {
+                    Text(reason)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if let error = model.launchAtLoginError {
+                    Label(error, systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+            }
         }
         .formStyle(.grouped)
     }

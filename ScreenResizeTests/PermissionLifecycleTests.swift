@@ -24,7 +24,8 @@ final class PermissionLifecycleTests: XCTestCase {
             windowManager: windowManager,
             screens: MockScreenProvider([Fixtures.primary, Fixtures.secondary]),
             frontmostTracker: MockFrontmostTracker(),
-            defaults: UserDefaults(suiteName: "PermissionLifecycleTests-\(UUID().uuidString)")!,
+            preferences: PreferencesStore(
+                defaults: UserDefaults(suiteName: "PermissionLifecycleTests-\(UUID().uuidString)")!),
             trustMonitor: monitor,
             settingsOpener: opener
         )

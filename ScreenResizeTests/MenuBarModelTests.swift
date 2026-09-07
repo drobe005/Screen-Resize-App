@@ -21,7 +21,7 @@ final class MenuBarModelTests: XCTestCase {
         defaults = UserDefaults(suiteName: "MenuBarModelTests-\(UUID().uuidString)")
         model = MenuBarModel(
             windowManager: windowManager, screens: screens,
-            frontmostTracker: tracker, defaults: defaults
+            frontmostTracker: tracker, preferences: PreferencesStore(defaults: defaults)
         )
     }
 
@@ -139,7 +139,7 @@ final class MenuBarModelTests: XCTestCase {
         model.sizingMode = .capture
         let reloaded = MenuBarModel(
             windowManager: windowManager, screens: screens,
-            frontmostTracker: tracker, defaults: defaults
+            frontmostTracker: tracker, preferences: PreferencesStore(defaults: defaults)
         )
         XCTAssertEqual(reloaded.sizingMode, .capture)
     }

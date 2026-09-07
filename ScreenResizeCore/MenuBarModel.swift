@@ -75,16 +75,14 @@ public final class MenuBarModel: ObservableObject {
     @Published public var sizingMode: SizingMode {
         didSet {
             guard sizingMode != oldValue else { return }
-            defaults.set(sizingMode.rawValue, forKey: Self.sizingModeDefaultsKey)
+            preferences.sizingMode = sizingMode
         }
     }
-
-    static let sizingModeDefaultsKey = "ScreenResize.sizingMode"
 
     private let windowManager: WindowManaging
     private let screens: ScreenProviding
     private let frontmostTracker: FrontmostApplicationTracking
-    private let defaults: UserDefaults
+    private let preferences: PreferencesStore
     private let trustMonitor: AccessibilityTrustMonitoring
     private let settingsOpener: SystemSettingsOpening
 
@@ -96,18 +94,17 @@ public final class MenuBarModel: ObservableObject {
         windowManager: WindowManaging,
         screens: ScreenProviding,
         frontmostTracker: FrontmostApplicationTracking,
-        defaults: UserDefaults = .standard,
+        preferences: PreferencesStore = PreferencesStore(),
         trustMonitor: AccessibilityTrustMonitoring = SystemTrustMonitor(),
         settingsOpener: SystemSettingsOpening = WorkspaceSettingsOpener()
     ) {
         self.windowManager = windowManager
         self.screens = screens
         self.frontmostTracker = frontmostTracker
-        self.defaults = defaults
+        self.preferences = preferences
         self.trustMonitor = trustMonitor
         self.settingsOpener = settingsOpener
-        self.sizingMode = defaults.string(forKey: Self.sizingModeDefaultsKey)
-            .flatMap(SizingMode.init(rawValue:)) ?? .logical
+        self.sizingMode = preferences.sizingMode
         self.isTrusted = windowManager.isProcessTrusted()
 
         // Re-check whenever trust may have changed, so a permission granted in

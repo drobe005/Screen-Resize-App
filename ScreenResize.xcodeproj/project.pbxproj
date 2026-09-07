@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A000000000000000000000A3 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = A000000000000000000000A2 /* KeyboardShortcuts */; };
 		6000000000000000000000F1 /* ScreenResizeCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3000000000000000000000C2 /* ScreenResizeCore.framework */; };
 		6000000000000000000000F2 /* ScreenResizeCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3000000000000000000000C2 /* ScreenResizeCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		6000000000000000000000F3 /* ScreenResizeCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3000000000000000000000C2 /* ScreenResizeCore.framework */; };
@@ -87,6 +88,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6000000000000000000000F1 /* ScreenResizeCore.framework in Frameworks */,
+				A000000000000000000000A3 /* KeyboardShortcuts in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,6 +151,9 @@
 				4000000000000000000000D1 /* ScreenResize */,
 			);
 			name = ScreenResize;
+			packageProductDependencies = (
+				A000000000000000000000A2 /* KeyboardShortcuts */,
+			);
 			productName = ScreenResize;
 			productReference = 3000000000000000000000C1 /* ScreenResize.app */;
 			productType = "com.apple.product-type.application";
@@ -223,6 +228,9 @@
 				Base,
 			);
 			mainGroup = 1000000000000000000000A2;
+			packageReferences = (
+				A000000000000000000000A1 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+			);
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1000000000000000000000A3 /* Products */;
@@ -517,6 +525,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A000000000000000000000A1 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.9.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A000000000000000000000A2 /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A000000000000000000000A1 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1000000000000000000000A1 /* Project object */;
 }

@@ -14,6 +14,8 @@ let onboardingWindowID = "onboarding"
 @main
 struct ScreenResizeApp: App {
 
+    @State private var hotkeys: HotkeyBinder?
+
     @StateObject private var model = MenuBarModel(
         windowManager: AXWindowManager(),
         screens: NSScreenProvider(),
@@ -31,6 +33,15 @@ struct ScreenResizeApp: App {
             // first run.
             MenuBarLabel()
                 .environmentObject(model)
+                .onAppear {
+                    // The status item exists at launch, so this is the earliest
+                    // reliable point to register global shortcuts.
+                    if hotkeys == nil {
+                        let binder = HotkeyBinder(model: model)
+                        binder.bind()
+                        hotkeys = binder
+                    }
+                }
         }
         .menuBarExtraStyle(.window)
 

@@ -409,6 +409,33 @@ public final class MenuBarModel: ObservableObject {
         launchesAtLogin = loginItem.isEnabled
     }
 
+    /// Applies the favorite occupying `slot`, a zero-based position.
+    ///
+    /// Hotkeys address favorites by position rather than identity, because
+    /// KeyboardShortcuts binds to fixed names decided at compile time while the
+    /// favorites list is whatever the user starred.
+    ///
+    /// Refreshes first: a hotkey fires with no menu open, so nothing has
+    /// established which window or display is being targeted.
+    public func applyFavoriteSlot(_ slot: Int) {
+        refresh()
+
+        let options = favoriteOptions()
+        guard options.indices.contains(slot) else {
+            // An unbound or empty slot does nothing, but says so rather than
+            // leaving the user wondering whether the key registered.
+            failureMessage = "No favorite is assigned to shortcut \(slot + 1)."
+            return
+        }
+
+        let option = options[slot]
+        guard option.isEnabled else {
+            failureMessage = option.menuLabel
+            return
+        }
+        apply(option)
+    }
+
     /// Opens System Settings at Privacy & Security → Accessibility.
     public func openAccessibilitySettings() {
         settingsOpener.openAccessibilityPane()

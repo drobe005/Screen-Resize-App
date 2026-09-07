@@ -214,8 +214,19 @@ surface, not scattered through the app.
 
 No third-party dependencies, with one exception:
 
-- `KeyboardShortcuts` by Sindre Sorhus — and only once we reach the hotkeys
-  phase. Do not add it before then.
+- `KeyboardShortcuts` by Sindre Sorhus — added in the hotkeys phase, pinned
+  `upToNextMajorVersion` from 1.9.4 (resolves to 1.17.0). It is wired into the
+  hand-written `project.pbxproj` by hand: `XCRemoteSwiftPackageReference`,
+  `XCSwiftPackageProductDependency`, the project's `packageReferences`, the app
+  target's `packageProductDependencies`, and a `PBXBuildFile` carrying a
+  `productRef` in the Frameworks phase. There is no XcodeGen or Homebrew here, so
+  any change to it is also by hand.
+
+  **It is imported only in the app target.** `ScreenResizeCore` has no dependency
+  on it, and the test bundle does not link it. Hotkeys address favorites by
+  position through `FavoriteSlot`, so the slot logic is unit tested without the
+  package present. Keep it that way: the moment Core imports it, every test needs
+  a network-resolved dependency to run.
 
 Nothing else. No Sparkle, no logging frameworks, no Snapshot/Quick/Nimble.
 XCTest only.

@@ -1,3 +1,4 @@
+import KeyboardShortcuts
 import SwiftUI
 import ScreenResizeCore
 
@@ -14,6 +15,8 @@ struct SettingsView: View {
                 .tabItem { Label("Favorites", systemImage: "star") }
             CustomSizesSettingsView()
                 .tabItem { Label("Custom Sizes", systemImage: "plus.rectangle") }
+            ShortcutsSettingsView()
+                .tabItem { Label("Shortcuts", systemImage: "command") }
         }
         .frame(width: 460)
         .scenePadding()
@@ -183,5 +186,39 @@ private struct CustomSizesSettingsView: View {
         } catch {
             errorMessage = "\(error)"
         }
+    }
+}
+
+private struct ShortcutsSettingsView: View {
+
+    @EnvironmentObject private var model: MenuBarModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Each shortcut resizes to whatever is in that favorites position, "
+                 + "so restarring keeps your shortcuts working.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Form {
+                ForEach(Array(KeyboardShortcuts.Name.favoriteSlots.enumerated()), id: \.offset) {
+                    slot, name in
+                    KeyboardShortcuts.Recorder(FavoriteSlot.title(for: slot), name: name)
+                    Text(assignment(for: slot))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .formStyle(.grouped)
+        }
+        .scenePadding()
+    }
+
+    /// What this slot currently points at, so a shortcut is never a mystery.
+    private func assignment(for slot: Int) -> String {
+        let favorites = model.favoriteResolutionIDs
+        guard favorites.indices.contains(slot) else { return "No favorite in this position" }
+        return favorites[slot]
     }
 }

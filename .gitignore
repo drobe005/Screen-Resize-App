@@ -21,7 +21,10 @@ xcuserdata/
 .build/
 .swiftpm/
 Packages/
-Package.resolved
+
+# Package.resolved IS committed. This is an application, not a library: the
+# resolved versions must be pinned so a fresh clone builds against the same
+# dependency versions that were tested, rather than whatever is newest.
 
 # macOS
 .DS_Store

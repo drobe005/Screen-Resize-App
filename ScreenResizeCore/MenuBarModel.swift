@@ -72,6 +72,9 @@ public final class MenuBarModel: ObservableObject {
     /// must not be shown the onboarding window.
     @Published public private(set) var isTrusted: Bool = false
 
+    /// Starred resolution IDs, in star order.
+    @Published public private(set) var favoriteResolutionIDs: [String] = []
+
     @Published public var sizingMode: SizingMode {
         didSet {
             guard sizingMode != oldValue else { return }
@@ -105,6 +108,7 @@ public final class MenuBarModel: ObservableObject {
         self.trustMonitor = trustMonitor
         self.settingsOpener = settingsOpener
         self.sizingMode = preferences.sizingMode
+        self.favoriteResolutionIDs = preferences.favoriteResolutionIDs
         self.isTrusted = windowManager.isProcessTrusted()
 
         // Re-check whenever trust may have changed, so a permission granted in
@@ -205,31 +209,63 @@ public final class MenuBarModel: ObservableObject {
     /// The rows for one aspect-ratio group, resolved against the current display
     /// and sizing mode. Empty when there is no window to act on.
     public func options(in group: AspectRatioGroup) -> [ResolutionOption] {
-        guard let display = currentDisplay else { return [] }
+        guard currentDisplay != nil else { return [] }
+        return group.resolutions.compactMap(makeOption(for:))
+    }
 
-        return group.resolutions.map { resolution in
-            let target = WindowGeometry.targetPointSize(
-                for: resolution,
-                mode: sizingMode,
-                backingScaleFactor: display.backingScaleFactor
-            )
-            let fits = WindowGeometry.fits(target, in: display)
+    /// Starred resolutions, in star order, resolved against the current display.
+    ///
+    /// IDs that no longer name anything are skipped rather than surfacing as
+    /// broken rows: a custom size can be deleted while still starred.
+    public func favoriteOptions() -> [ResolutionOption] {
+        guard currentDisplay != nil else { return [] }
+        return favoriteResolutionIDs
+            .compactMap { id in allResolutions.first { $0.id == id } }
+            .compactMap(makeOption(for:))
+    }
 
-            // Built here, from resolution.name — never from digits in a view.
-            let label: String
-            if fits {
-                label = resolution.label.map { "\(resolution.name) — \($0)" } ?? resolution.name
-            } else {
-                label = "\(resolution.name) — too large for this display"
-            }
+    /// Every resolution the app knows about.
+    public var allResolutions: [Resolution] { ResolutionCatalog.allResolutions }
 
-            return ResolutionOption(
-                resolution: resolution,
-                targetSizeInPoints: target,
-                isEnabled: fits,
-                menuLabel: label
-            )
+    public func isFavorite(_ resolution: Resolution) -> Bool {
+        favoriteResolutionIDs.contains(resolution.id)
+    }
+
+    /// Stars or unstars a resolution. Newly starred entries append, so existing
+    /// positions do not shift underneath anything addressing them by index.
+    public func toggleFavorite(_ resolution: Resolution) {
+        if let index = favoriteResolutionIDs.firstIndex(of: resolution.id) {
+            favoriteResolutionIDs.remove(at: index)
+        } else {
+            favoriteResolutionIDs.append(resolution.id)
         }
+        preferences.favoriteResolutionIDs = favoriteResolutionIDs
+    }
+
+    private func makeOption(for resolution: Resolution) -> ResolutionOption? {
+        guard let display = currentDisplay else { return nil }
+
+        let target = WindowGeometry.targetPointSize(
+            for: resolution,
+            mode: sizingMode,
+            backingScaleFactor: display.backingScaleFactor
+        )
+        let fits = WindowGeometry.fits(target, in: display)
+
+        // Built here, from resolution.name, never from digits in a view.
+        let label: String
+        if fits {
+            label = resolution.label.map { "\(resolution.name) — \($0)" } ?? resolution.name
+        } else {
+            label = "\(resolution.name) — too large for this display"
+        }
+
+        return ResolutionOption(
+            resolution: resolution,
+            targetSizeInPoints: target,
+            isEnabled: fits,
+            menuLabel: label
+        )
     }
 
     // MARK: - Apply

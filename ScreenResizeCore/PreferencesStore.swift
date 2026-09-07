@@ -25,6 +25,7 @@ public final class PreferencesStore {
 
     private enum Key {
         static let sizingMode = "ScreenResize.sizingMode"
+        static let favoriteResolutionIDs = "ScreenResize.favoriteResolutionIDs"
     }
 
     private let defaults: UserDefaults
@@ -40,5 +41,14 @@ public final class PreferencesStore {
                 .flatMap(SizingMode.init(rawValue:)) ?? .logical
         }
         set { defaults.set(newValue.rawValue, forKey: Key.sizingMode) }
+    }
+
+    /// Starred resolution IDs, in the order they were starred.
+    ///
+    /// Order is meaningful and must be preserved: hotkey slots address favorites
+    /// by position, so re-sorting this would silently repoint a user's shortcuts.
+    public var favoriteResolutionIDs: [String] {
+        get { defaults.stringArray(forKey: Key.favoriteResolutionIDs) ?? [] }
+        set { defaults.set(newValue, forKey: Key.favoriteResolutionIDs) }
     }
 }

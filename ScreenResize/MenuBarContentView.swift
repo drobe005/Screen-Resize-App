@@ -36,6 +36,11 @@ struct MenuBarContentView: View {
                 if let failure = model.failureMessage {
                     FailureBannerView(message: failure)
                 }
+                let favorites = model.favoriteOptions()
+                if !favorites.isEmpty {
+                    FavoritesSection(options: favorites, apply: model.apply)
+                    Divider()
+                }
                 ForEach(ResolutionCatalog.groups) { group in
                     AspectRatioGroupMenu(
                         heading: group.heading,
@@ -103,6 +108,29 @@ private struct SizingModePicker: View {
         }
         .pickerStyle(.segmented)
         .labelsHidden()
+    }
+}
+
+/// Starred sizes, pinned above the groups. Flat rather than a submenu: the whole
+/// point is reaching them without a hover.
+private struct FavoritesSection: View {
+    let options: [ResolutionOption]
+    let apply: (ResolutionOption) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("Favorites")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            ForEach(options) { option in
+                Button {
+                    apply(option)
+                } label: {
+                    Label(option.menuLabel, systemImage: "star.fill")
+                }
+                .disabled(!option.isEnabled)
+            }
+        }
     }
 }
 

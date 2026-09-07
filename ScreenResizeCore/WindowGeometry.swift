@@ -258,4 +258,34 @@ public enum WindowGeometry {
         guard overlapWidth > 0, overlapHeight > 0 else { return 0 }
         return overlapWidth * overlapHeight
     }
+
+    // MARK: - Aspect ratio
+
+    /// The aspect ratio of a size, reduced to its lowest terms.
+    ///
+    /// Returns nil for a non-positive size rather than dividing by zero.
+    ///
+    /// This computes the *real* ratio, which is frequently not the one a display
+    /// is marketed as: 2560x1080 reduces to 64:27, not 21:9. See the note on
+    /// `AspectRatioGroup.heading`.
+    public static func aspectRatio(of size: PixelSize) -> (widthTerm: Int, heightTerm: Int)? {
+        let width = Int(size.widthInPixels.rounded())
+        let height = Int(size.heightInPixels.rounded())
+        guard width > 0, height > 0 else { return nil }
+
+        let divisor = greatestCommonDivisor(width, height)
+        return (width / divisor, height / divisor)
+    }
+
+    /// Formatted for display, e.g. "64:27". Nil for a non-positive size.
+    public static func aspectRatioDescription(of size: PixelSize) -> String? {
+        guard let ratio = aspectRatio(of: size) else { return nil }
+        return "\(ratio.widthTerm):\(ratio.heightTerm)"
+    }
+
+    private static func greatestCommonDivisor(_ a: Int, _ b: Int) -> Int {
+        var a = abs(a), b = abs(b)
+        while b != 0 { (a, b) = (b, a % b) }
+        return a == 0 ? 1 : a
+    }
 }

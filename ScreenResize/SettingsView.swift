@@ -12,6 +12,8 @@ struct SettingsView: View {
                 .tabItem { Label("General", systemImage: "gearshape") }
             FavoritesSettingsView()
                 .tabItem { Label("Favorites", systemImage: "star") }
+            CustomSizesSettingsView()
+                .tabItem { Label("Custom Sizes", systemImage: "plus.rectangle") }
         }
         .frame(width: 460)
         .scenePadding()
@@ -73,5 +75,93 @@ private struct FavoritesSettingsView: View {
             .frame(height: 320)
         }
         .scenePadding()
+    }
+}
+
+private struct CustomSizesSettingsView: View {
+
+    @EnvironmentObject private var model: MenuBarModel
+
+    @State private var widthText = ""
+    @State private var heightText = ""
+    @State private var errorMessage: String?
+
+    /// Parsed only when both fields are valid numbers, so the ratio label stays
+    /// blank rather than flickering nonsense while typing.
+    private var pendingPixelSize: PixelSize? {
+        guard let width = Int(widthText), let height = Int(heightText),
+              width > 0, height > 0
+        else { return nil }
+        return PixelSize(widthInPixels: CGFloat(width), heightInPixels: CGFloat(height))
+    }
+
+    private var ratioDescription: String {
+        pendingPixelSize.flatMap(WindowGeometry.aspectRatioDescription(of:)) ?? "—"
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                TextField("Width", text: $widthText)
+                    .frame(width: 90)
+                Text("×")
+                TextField("Height", text: $heightText)
+                    .frame(width: 90)
+                Text("pixels")
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Add", action: add)
+                    .disabled(pendingPixelSize == nil)
+            }
+            .textFieldStyle(.roundedBorder)
+
+            HStack(spacing: 6) {
+                Text("Aspect ratio")
+                    .foregroundStyle(.secondary)
+                Text(ratioDescription)
+                    .monospacedDigit()
+            }
+            .font(.callout)
+
+            if let errorMessage {
+                Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+
+            Divider()
+
+            if model.customSizes.isEmpty {
+                Text("No custom sizes yet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                List {
+                    ForEach(model.customSizes) { size in
+                        HStack {
+                            Text(size.resolution.label.map { "\(size.id) — \($0)" } ?? size.id)
+                            Spacer()
+                            Button("Remove") { model.removeCustomSize(size) }
+                        }
+                    }
+                }
+                .frame(height: 200)
+            }
+        }
+        .scenePadding()
+    }
+
+    private func add() {
+        guard let width = Int(widthText), let height = Int(heightText) else { return }
+        do {
+            try model.addCustomSize(widthInPixels: width, heightInPixels: height)
+            widthText = ""
+            heightText = ""
+            errorMessage = nil
+        } catch let error as CustomSizeError {
+            errorMessage = error.description
+        } catch {
+            errorMessage = "\(error)"
+        }
     }
 }

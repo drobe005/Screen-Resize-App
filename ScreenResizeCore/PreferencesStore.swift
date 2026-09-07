@@ -26,6 +26,7 @@ public final class PreferencesStore {
     private enum Key {
         static let sizingMode = "ScreenResize.sizingMode"
         static let favoriteResolutionIDs = "ScreenResize.favoriteResolutionIDs"
+        static let customSizes = "ScreenResize.customSizes"
     }
 
     private let defaults: UserDefaults
@@ -50,5 +51,22 @@ public final class PreferencesStore {
     public var favoriteResolutionIDs: [String] {
         get { defaults.stringArray(forKey: Key.favoriteResolutionIDs) ?? [] }
         set { defaults.set(newValue, forKey: Key.favoriteResolutionIDs) }
+    }
+
+    /// User-defined sizes, in the order they were added.
+    ///
+    /// Encoded as JSON rather than a plist array of dictionaries so the shape is
+    /// owned by `Codable` and a future field addition does not need a manual
+    /// migration. A value that fails to decode yields an empty list rather than
+    /// crashing on launch.
+    public var customSizes: [CustomSize] {
+        get {
+            guard let data = defaults.data(forKey: Key.customSizes) else { return [] }
+            return (try? JSONDecoder().decode([CustomSize].self, from: data)) ?? []
+        }
+        set {
+            guard let data = try? JSONEncoder().encode(newValue) else { return }
+            defaults.set(data, forKey: Key.customSizes)
+        }
     }
 }

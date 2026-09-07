@@ -75,6 +75,9 @@ public final class MenuBarModel: ObservableObject {
     /// Starred resolution IDs, in star order.
     @Published public private(set) var favoriteResolutionIDs: [String] = []
 
+    /// User-defined sizes, in the order they were added.
+    @Published public private(set) var customSizes: [CustomSize] = []
+
     @Published public var sizingMode: SizingMode {
         didSet {
             guard sizingMode != oldValue else { return }
@@ -109,6 +112,7 @@ public final class MenuBarModel: ObservableObject {
         self.settingsOpener = settingsOpener
         self.sizingMode = preferences.sizingMode
         self.favoriteResolutionIDs = preferences.favoriteResolutionIDs
+        self.customSizes = preferences.customSizes
         self.isTrusted = windowManager.isProcessTrusted()
 
         // Re-check whenever trust may have changed, so a permission granted in
@@ -224,8 +228,49 @@ public final class MenuBarModel: ObservableObject {
             .compactMap(makeOption(for:))
     }
 
-    /// Every resolution the app knows about.
-    public var allResolutions: [Resolution] { ResolutionCatalog.allResolutions }
+    /// Every resolution the app knows about, built-in and custom.
+    public var allResolutions: [Resolution] {
+        ResolutionCatalog.allResolutions + customSizes.map(\.resolution)
+    }
+
+    /// The user's sizes as a group, or nil when there are none to show.
+    public var customGroup: AspectRatioGroup? {
+        guard !customSizes.isEmpty else { return nil }
+        return AspectRatioGroup(heading: "Custom", resolutions: customSizes.map(\.resolution))
+    }
+
+    /// Adds a custom size after validating it.
+    ///
+    /// - Throws: `CustomSizeError`. Refusals are surfaced, never silently
+    ///   clamped into something the user did not ask for.
+    public func addCustomSize(widthInPixels: Int, heightInPixels: Int) throws {
+        guard widthInPixels > 0, heightInPixels > 0 else {
+            throw CustomSizeError.notPositive
+        }
+        let maximum = CustomSizeLimits.maximumInPixels
+        guard widthInPixels <= maximum, heightInPixels <= maximum else {
+            throw CustomSizeError.tooLarge(maximumInPixels: maximum)
+        }
+
+        let candidate = CustomSize(widthInPixels: widthInPixels, heightInPixels: heightInPixels)
+        guard !allResolutions.contains(where: { $0.id == candidate.id }) else {
+            throw CustomSizeError.duplicate(name: candidate.id)
+        }
+
+        customSizes.append(candidate)
+        preferences.customSizes = customSizes
+    }
+
+    /// Removes a custom size, and unstars it if it was starred.
+    public func removeCustomSize(_ size: CustomSize) {
+        customSizes.removeAll { $0.id == size.id }
+        preferences.customSizes = customSizes
+
+        if let index = favoriteResolutionIDs.firstIndex(of: size.id) {
+            favoriteResolutionIDs.remove(at: index)
+            preferences.favoriteResolutionIDs = favoriteResolutionIDs
+        }
+    }
 
     public func isFavorite(_ resolution: Resolution) -> Bool {
         favoriteResolutionIDs.contains(resolution.id)

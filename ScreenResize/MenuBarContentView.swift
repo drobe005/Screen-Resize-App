@@ -41,6 +41,13 @@ struct MenuBarContentView: View {
                     FavoritesSection(options: favorites, apply: model.apply)
                     Divider()
                 }
+                if let custom = model.customGroup {
+                    AspectRatioGroupMenu(
+                        heading: custom.heading,
+                        options: model.options(in: custom),
+                        apply: model.apply
+                    )
+                }
                 ForEach(ResolutionCatalog.groups) { group in
                     AspectRatioGroupMenu(
                         heading: group.heading,

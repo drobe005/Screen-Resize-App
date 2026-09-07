@@ -61,10 +61,7 @@ struct MenuBarContentView: View {
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Placeholder: a real Settings scene would make MenuBarExtra no
-            // longer the app's only scene, which CLAUDE.md forbids for now.
-            Button("Settings…") {}
-                .disabled(true)
+            SettingsLink { Text("Settings…") }
             Button("Quit ScreenResize") { NSApplication.shared.terminate(nil) }
                 .keyboardShortcut("q")
         }

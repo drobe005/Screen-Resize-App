@@ -66,17 +66,9 @@ struct OnboardingView: View {
         }
         .padding(24)
         .frame(width: 460, alignment: .leading)
-        .onAppear {
-            // Without a Dock icon an LSUIElement app's window can open behind
-            // everything else, which a first-time user would never find. Become
-            // a regular app for the duration of onboarding so the window is
-            // focused and reachable.
-            NSApp.setActivationPolicy(.regular)
-            NSApp.activate(ignoringOtherApps: true)
-        }
-        .onDisappear {
-            // Back to menu-bar-only for normal operation.
-            NSApp.setActivationPolicy(.accessory)
-        }
+        // Counted rather than set directly, so closing this window does not
+        // bury a Settings window that is still open.
+        .onAppear { ActivationPolicyCoordinator.shared.windowDidAppear() }
+        .onDisappear { ActivationPolicyCoordinator.shared.windowDidDisappear() }
     }
 }

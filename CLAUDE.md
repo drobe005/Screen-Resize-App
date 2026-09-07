@@ -98,9 +98,11 @@ untrusted, and dismisses itself once permission is granted — no relaunch neede
 ## Stack
 
 - Swift 5.9+
-- SwiftUI. `MenuBarExtra` is the app's only scene in normal use; a second `Window`
-  scene exists solely for first-run onboarding and is shown only while the app is
-  untrusted for Accessibility
+- SwiftUI. `MenuBarExtra` is the primary scene and the only one visible in normal
+  use. Two others exist: a `Window` shown only during first-run onboarding while the
+  app is untrusted, and a standard `Settings` scene. Because the app is `LSUIElement`,
+  any such window must go through `ActivationPolicyCoordinator` rather than setting
+  `NSApp.setActivationPolicy` directly, or windows bury each other
 - Minimum deployment target: macOS 14
 - Window control via the Accessibility API (`AXUIElement`)
 - Built and tested exclusively from the command line with `xcodebuild`

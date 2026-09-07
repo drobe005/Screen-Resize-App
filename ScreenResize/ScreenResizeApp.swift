@@ -40,6 +40,11 @@ struct ScreenResizeApp: App {
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
+
+        Settings {
+            SettingsView()
+                .environmentObject(model)
+        }
     }
 }
 

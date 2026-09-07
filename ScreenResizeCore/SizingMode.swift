@@ -21,4 +21,17 @@ public enum SizingMode: String, CaseIterable, Sendable {
         case .capture: return "Capture"
         }
     }
+
+    /// One-line description of what this mode does, for Settings.
+    public var explanation: String {
+        switch self {
+        case .logical:
+            return "Preset numbers are used as points, so the window measures "
+                + "exactly that on screen."
+        case .capture:
+            return "Preset numbers are treated as pixels and divided by the display's "
+                + "scale factor, so a screen recording of the window comes out at "
+                + "exactly those pixel dimensions."
+        }
+    }
 }

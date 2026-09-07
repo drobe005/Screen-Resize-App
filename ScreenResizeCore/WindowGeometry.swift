@@ -25,29 +25,23 @@ public enum WindowGeometry {
     /// points, and the scale factor is an explicit parameter rather than
     /// something read from ambient state. See CLAUDE.md, hard constraint 2.
     public static func targetPointSize(
-        for resolution: Resolution, mode: SizingMode, backingScaleFactor: CGFloat
+        for resolution: Resolution, backingScaleFactor: CGFloat
     ) -> PointSize {
-        switch mode {
-        case .logical:
-            // A reinterpretation, not a conversion: the authored numbers are
-            // taken to be points as-is. The scale factor is deliberately unused.
-            return PointSize(
-                widthInPoints: resolution.pixelSize.widthInPixels,
-                heightInPoints: resolution.pixelSize.heightInPixels
-            )
-
-        case .capture:
-            precondition(
-                backingScaleFactor > 0,
-                "backingScaleFactor must be positive, got \(backingScaleFactor)"
-            )
-            // Points chosen so that a capture of the window is exactly the
-            // preset's pixel dimensions.
-            return PointSize(
-                widthInPoints: resolution.pixelSize.widthInPixels / backingScaleFactor,
-                heightInPoints: resolution.pixelSize.heightInPixels / backingScaleFactor
-            )
-        }
+        precondition(
+            backingScaleFactor > 0,
+            "backingScaleFactor must be positive, got \(backingScaleFactor)"
+        )
+        // The only interpretation: a preset's numbers are physical pixels, and
+        // dividing by the display's own scale factor is what makes the result
+        // relative to whichever display it is applied on. A screen recording of
+        // the resulting window is then exactly the preset's pixel dimensions —
+        // 3840x2160 on a 2x display becomes a 1920x1080 point window that
+        // captures at 3840x2160 pixels; the same preset on a 1x display stays
+        // 3840x2160 points. See CLAUDE.md, hard constraint 2.
+        return PointSize(
+            widthInPoints: resolution.pixelSize.widthInPixels / backingScaleFactor,
+            heightInPoints: resolution.pixelSize.heightInPixels / backingScaleFactor
+        )
     }
 
     // MARK: - Fitting

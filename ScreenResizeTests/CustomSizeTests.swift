@@ -80,20 +80,21 @@ final class CustomSizeTests: XCTestCase {
     }
 
     func testM7_customSizesBehaveExactlyLikeBuiltInPresets() throws {
-        model.sizingMode = .logical
-        // The middle case is the one worth pinning down. 1080 is the obvious
-        // height to reach for, and it does NOT fit: the visible frame is 1075 pt
-        // tall because the menu bar and Dock take 125 pt off a 1200 pt display.
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1000)
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)
+        // Custom sizes are authored in pixels like every other preset, and this
+        // fixture's display is 2x. The middle case is the one worth pinning
+        // down: 2160 PIXELS tall becomes 1080 POINTS at 2x, which does NOT fit —
+        // the visible frame is 1075 pt tall because the menu bar and Dock take
+        // 125 pt off a 1200 pt display. 2000 pixels tall (1000 pt) just fits.
+        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 2000)
+        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 2160)
         try model.addCustomSize(widthInPixels: 9000, heightInPixels: 9000)
 
         let group = try XCTUnwrap(model.customGroup)
         let options = model.options(in: group)
 
-        XCTAssertTrue(options[0].isEnabled, "1000 pt tall fits a 1075 pt visible frame")
-        XCTAssertFalse(options[1].isEnabled, "1080 pt tall does not fit a 1075 pt visible frame")
-        XCTAssertEqual(options[1].menuLabel, "1720x1080 — too large for this display")
+        XCTAssertTrue(options[0].isEnabled, "2000 px tall is 1000 pt at 2x, fits a 1075 pt frame")
+        XCTAssertFalse(options[1].isEnabled, "2160 px tall is 1080 pt at 2x, exceeds a 1075 pt frame")
+        XCTAssertEqual(options[1].menuLabel, "1720x2160 — too large for this display")
         XCTAssertFalse(options[2].isEnabled)
         XCTAssertEqual(options[2].menuLabel, "9000x9000 — too large for this display")
     }

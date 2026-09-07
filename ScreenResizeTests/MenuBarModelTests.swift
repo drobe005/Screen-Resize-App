@@ -93,7 +93,6 @@ final class MenuBarModelTests: XCTestCase {
     // MARK: - Fit
 
     func testI8_oversizedPresetIsDisabledAndSaysWhy() {
-        model.sizingMode = .logical
         model.refresh()
         let option = option(named: "7680x4320")
         XCTAssertFalse(option.isEnabled)
@@ -101,31 +100,30 @@ final class MenuBarModelTests: XCTestCase {
     }
 
     func testI9_fittingPresetIsEnabledAndShowsItsFriendlyLabel() {
-        model.sizingMode = .logical
         model.refresh()
         let option = option(named: "1280x720")
         XCTAssertTrue(option.isEnabled)
         XCTAssertEqual(option.menuLabel, "1280x720 — 720p / HD")
     }
 
-    func testI10_captureModeEnablesPresetsThatLogicalModeCannotFit() {
+    func testI10_fitIsRelativeToTheActiveDisplayNotAbsolute() {
+        // The whole point of dropping the mode picker: sizing is always relative
+        // to the display's own scale factor, and this is what "relative" means in
+        // practice. 2560x1440 pixels is 2560x1440 points on a 1x display (does not
+        // fit a 2000pt-wide visible frame) but 1280x720 points on a 2x display
+        // (fits easily). Same preset, different displays, different outcome.
         model.refresh()
-
-        model.sizingMode = .logical
-        let logical = option(named: "2560x1440")
-        model.sizingMode = .capture
-        let capture = option(named: "2560x1440")
-
-        XCTAssertFalse(logical.isEnabled, "2560 points is wider than the 2000 pt visible frame")
-        XCTAssertTrue(capture.isEnabled, "At 2x it is 1280x720 points, which fits")
+        let onPrimary2x = option(named: "2560x1440")
+        XCTAssertTrue(onPrimary2x.isEnabled, "At 2x, 2560x1440 pixels is 1280x720 points, which fits")
+        XCTAssertEqual(onPrimary2x.targetSizeInPoints,
+                       PointSize(widthInPoints: 1280, heightInPoints: 720))
     }
 
-    func testI10b_dockAndMenuBarCanStillDefeatACaptureModePreset() {
+    func testI10b_dockAndMenuBarCanStillDefeatAPreset() {
         // Worth pinning down: 3840x2160 at 2x is 1920x1080 POINTS, and 1920 fits
         // the 2000 pt width -- but 1080 exceeds the 1075 pt visible HEIGHT, because
         // the menu bar and Dock take 125 pt off a 1200 pt display. Halving by the
         // scale factor is not a guarantee that a preset fits.
-        model.sizingMode = .capture
         model.refresh()
 
         let option = option(named: "3840x2160")
@@ -135,23 +133,14 @@ final class MenuBarModelTests: XCTestCase {
         XCTAssertEqual(option.menuLabel, "3840x2160 — too large for this display")
     }
 
-    func testI11_sizingModePersistsAcrossModelInstances() {
-        model.sizingMode = .capture
-        let reloaded = MenuBarModel(
-            windowManager: windowManager, screens: screens,
-            frontmostTracker: tracker, preferences: PreferencesStore(defaults: defaults)
-        )
-        XCTAssertEqual(reloaded.sizingMode, .capture)
-    }
-
     // MARK: - Apply
 
     func testI12_applyResizesAndRecentersOnTheCurrentDisplay() {
-        model.sizingMode = .logical
         model.refresh()
         model.apply(enabledOption(named: "1280x720"))
 
-        let expectedSize = PointSize(widthInPoints: 1280, heightInPoints: 720)
+        // 1280x720 PIXELS at this fixture's 2x scale is 640x360 POINTS.
+        let expectedSize = PointSize(widthInPoints: 640, heightInPoints: 360)
         let expectedOrigin = WindowGeometry.centeredOriginInAXSpace(
             for: expectedSize, in: Fixtures.primary)
 
@@ -180,23 +169,22 @@ final class MenuBarModelTests: XCTestCase {
 
         let message = model.failureMessage ?? ""
         XCTAssertTrue(message.contains("1000 × 700 pt"), message)
-        XCTAssertTrue(message.contains("1280 × 720 pt"), message)
+        XCTAssertTrue(message.contains("640 × 360 pt"), message)   // 1280x720 px at 2x
     }
 
     func testI15_applyingADisabledOptionDoesNothing() {
-        model.sizingMode = .logical
         model.refresh()
         model.apply(option(named: "7680x4320"))
         XCTAssertTrue(windowManager.appliedFrames.isEmpty, "A disabled option must not be applied")
     }
 
     func testI16_headerReflectsTheNewSizeAfterApplying() {
-        model.sizingMode = .logical
         model.refresh()
         model.apply(enabledOption(named: "1280x720"))
 
         guard case .ready(let snapshot) = model.state else { return XCTFail("Expected .ready") }
-        XCTAssertEqual(snapshot.currentSizeDescription, "1280 × 720 pt")
+        // 1280x720 PIXELS at this fixture's 2x scale is 640x360 POINTS.
+        XCTAssertEqual(snapshot.currentSizeDescription, "640 × 360 pt")
     }
 
     func testI17_applyTargetsTheTrackedAppNotWhateverIsFrontmost() {

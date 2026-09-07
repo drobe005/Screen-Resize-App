@@ -32,7 +32,6 @@ struct MenuBarContentView: View {
                     detail: snapshot.currentSizeDescription,
                     scale: snapshot.scaleDescription
                 )
-                SizingModePicker(mode: $model.sizingMode)
                 if let failure = model.failureMessage {
                     FailureBannerView(message: failure)
                 }
@@ -101,20 +100,6 @@ private struct MenuHeaderView: View {
         }
         .allowsHitTesting(false)
         .accessibilityElement(children: .combine)
-    }
-}
-
-private struct SizingModePicker: View {
-    @Binding var mode: SizingMode
-
-    var body: some View {
-        Picker("Sizing", selection: $mode) {
-            ForEach(SizingMode.allCases, id: \.self) { mode in
-                Text(mode.menuTitle).tag(mode)
-            }
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
     }
 }
 

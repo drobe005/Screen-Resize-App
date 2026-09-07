@@ -24,7 +24,6 @@ import Foundation
 public final class PreferencesStore {
 
     private enum Key {
-        static let sizingMode = "ScreenResize.sizingMode"
         static let favoriteResolutionIDs = "ScreenResize.favoriteResolutionIDs"
         static let customSizes = "ScreenResize.customSizes"
     }
@@ -33,15 +32,6 @@ public final class PreferencesStore {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-    }
-
-    /// How preset numbers are interpreted. Defaults to `.logical`.
-    public var sizingMode: SizingMode {
-        get {
-            defaults.string(forKey: Key.sizingMode)
-                .flatMap(SizingMode.init(rawValue:)) ?? .logical
-        }
-        set { defaults.set(newValue.rawValue, forKey: Key.sizingMode) }
     }
 
     /// Starred resolution IDs, in the order they were starred.

@@ -38,15 +38,19 @@ final class FavoriteSlotTests: XCTestCase {
     }
 
     func testO2_firingASlotAppliesTheFavoriteAtThatPosition() {
-        model.sizingMode = .logical
-        model.toggleFavorite(Fixtures.catalogResolution("2560x1440"))   // slot 0, too wide
+        // At this fixture's 2x scale, 2560x1440 px is 1280x720 pt (fits the
+        // 2000x1075 visible frame) -- so use a preset that is genuinely too wide
+        // at 2x to keep slot 0 the "does not fit" case: 3840x2160 px is 1920x1080
+        // pt, which exceeds the 1075pt visible height.
+        model.toggleFavorite(Fixtures.catalogResolution("3840x2160"))   // slot 0, too tall
         model.toggleFavorite(Fixtures.catalogResolution("1280x720"))    // slot 1, fits
 
         model.applyFavoriteSlot(1)
 
         XCTAssertEqual(windowManager.appliedFrames.count, 1)
+        // 1280x720 PIXELS at 2x scale is 640x360 POINTS.
         XCTAssertEqual(windowManager.appliedFrames[0].size,
-                       PointSize(widthInPoints: 1280, heightInPoints: 720))
+                       PointSize(widthInPoints: 640, heightInPoints: 360))
     }
 
     func testO3_firingWithoutAMenuOpenStillResolvesTheDisplay() {
@@ -83,7 +87,6 @@ final class FavoriteSlotTests: XCTestCase {
     }
 
     func testO6_slotPointingAtATooLargeSizeExplainsInsteadOfResizing() {
-        model.sizingMode = .logical
         model.toggleFavorite(Fixtures.catalogResolution("7680x4320"))
 
         model.applyFavoriteSlot(0)
@@ -93,14 +96,14 @@ final class FavoriteSlotTests: XCTestCase {
     }
 
     func testO7_restarringRepointsASlotRatherThanBreakingIt() {
-        model.sizingMode = .logical
         model.toggleFavorite(Fixtures.catalogResolution("1280x720"))
         model.toggleFavorite(Fixtures.catalogResolution("1280x720"))   // unstar
         model.toggleFavorite(Fixtures.catalogResolution("1024x768"))   // new occupant of slot 0
 
         model.applyFavoriteSlot(0)
 
+        // 1024x768 PIXELS at 2x scale is 512x384 POINTS.
         XCTAssertEqual(windowManager.appliedFrames[0].size,
-                       PointSize(widthInPoints: 1024, heightInPoints: 768))
+                       PointSize(widthInPoints: 512, heightInPoints: 384))
     }
 }

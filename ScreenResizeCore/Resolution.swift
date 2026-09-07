@@ -2,8 +2,8 @@ import CoreGraphics
 
 /// A single resolution preset, authored in physical pixels.
 ///
-/// How these numbers become points depends on the `SizingMode` they are applied
-/// with — see `WindowGeometry.targetPointSize(for:mode:backingScaleFactor:)`.
+/// These numbers are physical pixels, converted to points at the moment of
+/// application — see `WindowGeometry.targetPointSize(for:backingScaleFactor:)`.
 public struct Resolution: Equatable, Identifiable, Sendable {
     /// Stable identity and display name, e.g. "1920x1080".
     public let name: String

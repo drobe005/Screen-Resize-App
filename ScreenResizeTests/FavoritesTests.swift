@@ -75,7 +75,6 @@ final class FavoritesTests: XCTestCase {
     }
 
     func testL6_favoriteOptionsCarryFitStateLikeAnyOtherRow() {
-        model.sizingMode = .logical
         model.toggleFavorite(resolution("1280x720"))
         model.toggleFavorite(resolution("7680x4320"))
 

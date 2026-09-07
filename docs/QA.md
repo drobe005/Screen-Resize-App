@@ -2,7 +2,7 @@
 
 Run before any release. Target: **under 15 minutes**. Times per case are budgets, not guesses.
 
-Automated tests cover the pure logic (`./scripts/test.sh`, 129 tests). This checklist covers
+Automated tests cover the pure logic (`./scripts/test.sh`, 128 tests). This checklist covers
 only what a machine cannot: real windows, real apps, real permission dialogs.
 
 ---
@@ -23,8 +23,8 @@ tccutil reset Accessibility com.deiondrickroberts.ScreenResize
 
 ### Measure your display before trusting any number below
 
-Expected values depend on your current resolution and Dock size. **The config changed between
-two of my own sessions**, so re-measure rather than assuming:
+Expected values depend on your current resolution and Dock size. **The config has changed
+between every session I've written this from so far** — re-measure rather than assuming:
 
 ```bash
 cat > /tmp/d.swift <<'EOF'
@@ -40,13 +40,19 @@ Every number in this document assumes the configuration measured at time of writ
 
 | | |
 |---|---|
-| Display | 1800 × 1169 pt, **2× scale** (3600 × 2338 px) |
-| Visible frame | 1800 × 1065 pt at AppKit origin (0, 65) |
-| Chrome | 39 pt menu bar, 65 pt Dock |
+| Display | 3008 × 1692 pt, **2× scale** (6016 × 3384 px) |
+| Visible frame | 3008 × 1597 pt at AppKit origin (0, 65) |
+| Chrome | 30 pt menu bar, 65 pt Dock |
 
 **If your numbers differ, recompute:**
-- Fits when `target ≤ 1800 × 1065` pt
-- Centred AX origin: `x = (1800 − w) / 2`, `y = 1169 − (65 + (1065 − h) / 2 + h)`
+- Fits when `target ≤ 3008 × 1597` pt
+- Centred AX origin: `x = (3008 − w) / 2`, `y = 1692 − (65 + (1597 − h) / 2 + h)`
+
+**There is no longer a sizing-mode toggle.** Every preset's numbers are always physical pixels,
+divided by the *active display's own scale factor* to get the point size actually applied. A
+preset therefore targets a different point size — and can go from fitting to not fitting — purely
+because the window is on a different display. That's intentional: resizing is always relative to
+whichever display the window is currently on. Case 6 exercises this directly.
 
 ---
 
@@ -55,13 +61,13 @@ Every number in this document assumes the configuration measured at time of writ
 1. Open Safari. Give it an obviously non-preset size by dragging a corner.
 2. Click the ScreenResize menu bar icon.
 3. Confirm the header reads **`Safari`**, its current size in points, and **`2× display`**.
-4. Set the mode picker to **Logical**.
-5. Open **16:9** and click **`1280x720 — 720p / HD`**.
+4. Open **16:9** and click **`1280x720 — 720p / HD`**.
 
 **Expected:**
-- Safari becomes exactly **1280 × 720 pt**, centred: AX origin **(260, 211.5)**.
+- `1280x720` is a pixel preset. At this display's 2× scale that's **640 × 360 pt**, centred:
+  AX origin **(1184, 648.5)**.
 - Visually: equal margins left and right, and the window sits below the menu bar.
-- Reopen the menu — header now reads **`1280 × 720 pt`**.
+- Reopen the menu — header now reads **`640 × 360 pt`**.
 - No orange failure banner.
 
 Repeat once with Finder to confirm it is not Safari-specific.
@@ -73,10 +79,11 @@ Use a fixed-size window. **System Settings** works; so does most apps' About box
 
 1. Focus the fixed-size window.
 2. Open the menu — the header should name that app.
-3. Pick any enabled size.
+3. Pick **`1280x720`** in 16:9 (any enabled size works; this keeps the numbers below concrete).
 
 **Expected:**
-- An orange banner: **`<App> refused to resize to 1280 × 720 pt.`**
+- An orange banner: **`<App> refused to resize to 640 × 360 pt.`** (640×360 pt is what `1280x720`
+  pixels becomes at this display's 2× scale — see Setup.)
 - The window does **not** move or change size.
 - The app does not crash or hang.
 
@@ -90,11 +97,11 @@ Silent failure is the one thing CLAUDE.md calls out as unacceptable.
 Use VS Code, Slack, Discord, or Figma.
 
 1. Focus the Electron window and resize it by dragging first.
-2. Open the menu, pick **`1280x720`** in Logical mode.
+2. Open the menu, pick **`1280x720`** in 16:9.
 
-**Expected (best case):** resizes exactly like case 1, banner absent.
+**Expected (best case):** resizes exactly like case 1 (640 × 360 pt), banner absent.
 
-**Also acceptable:** a banner reading `… resized to <actual> instead of 1280 × 720 pt.` when the
+**Also acceptable:** a banner reading `… resized to <actual> instead of 640 × 360 pt.` when the
 app enforces a minimum size — that is a truthful partial result.
 
 ⚠️ **A `refused to resize` banner while the window visibly did resize is a bug**, not a pass.
@@ -119,7 +126,7 @@ Known Issue **4**. Both outcomes above are a pass *today*; neither is good.
 
 1. Drag a Safari window so roughly **60%** sits on the external display and 40% on the laptop.
 2. Open the menu and note which display's scale the header reports.
-3. Pick **`1280x720`** in Logical mode.
+3. Pick **`1280x720`** in 16:9.
 
 **Expected:**
 - The header reports the scale of the display holding **most** of the window.
@@ -131,51 +138,55 @@ undefined; do not test it.
 
 ## 6. Laptop vs external display with a different scale factor (2 min — needs a second display)
 
-Best with a 1× external monitor beside the 2× laptop panel.
+Best with a 1× external monitor beside the 2× laptop panel. This is the core feature: resizing is
+always relative to whichever display the window is on, with no toggle involved.
 
 1. Put a Safari window **fully on the laptop** (2×). Open the menu.
    - Header shows **`2× display`**.
-   - In **Capture** mode, `2560x1440` should be **enabled** (→ 1280 × 720 pt).
+   - `2560x1440` (16:9) should be **enabled**, targeting **1280 × 720 pt**.
 2. Move the same window **fully onto the external display** (1×). Reopen the menu.
    - Header shows **`1× display`**.
-   - In **Capture** mode, `2560x1440` is now **disabled** unless that display is at least
-     2560 × 1440 pt of visible space, because at 1× the target is 2560 × 1440 points.
+   - The *same* `2560x1440` preset now targets **2560 × 1440 pt** — four times the on-screen
+     area — and is **disabled** unless that display has at least that much visible space.
 
-**Expected:** the same preset changes availability purely because the display changed. That is
-the whole point of Capture mode, and getting the same answer on both displays is a bug.
+**Expected:** the same preset's availability and target size change purely because the display
+changed, with no setting touched. Getting the identical target size on both displays is the bug.
 
 ⚠️ Do not leave the menu open while dragging the window between displays — see Known Issue **7**.
 
-## 7. Logical vs Capture, against a real screen recording (3 min)
+## 7. Same preset, two displays, verified against a real screen recording (3 min — needs a second display)
 
-The one case that proves Capture mode does what it claims. **Use the same preset in both modes.**
+The case that proves "relative to the active display" does what it claims: the same preset should
+capture at the *same pixel dimensions* on both displays, even though its point size differs.
 
-**7a — Logical**
-1. Mode picker → **Logical**. Pick **16:9 → `1280x720`**.
+**7a — Laptop (2×)**
+1. Put Safari fully on the laptop display. Pick **16:9 → `1280x720`**.
 2. Capture the window without its shadow, then measure:
 
 ```bash
-screencapture -o -w ~/Desktop/logical.png     # click the Safari window
-sips -g pixelWidth -g pixelHeight ~/Desktop/logical.png
-```
-
-**Expected: `pixelWidth: 2560`, `pixelHeight: 1440`.**
-Logical means points: a 1280 × 720 pt window on a 2× display is 2560 × 1440 **pixels**.
-
-**7b — Capture**
-1. Mode picker → **Capture**. Pick **16:9 → `1280x720`** again.
-2. Repeat the capture:
-
-```bash
-screencapture -o -w ~/Desktop/capture.png
-sips -g pixelWidth -g pixelHeight ~/Desktop/capture.png
+screencapture -o -w ~/Desktop/laptop.png     # click the Safari window
+sips -g pixelWidth -g pixelHeight ~/Desktop/laptop.png
 ```
 
 **Expected: `pixelWidth: 1280`, `pixelHeight: 720`.**
-The window is now 640 × 360 pt (AX origin **(580, 391.5)**), which is exactly 1280 × 720 pixels.
+The window is 640 × 360 pt (this display's 2× scale), which captures at exactly 1280 × 720 pixels
+— matching the preset name.
 
-**The pass condition is that these two differ by exactly 2×.** If both give 2560 × 1440, the
-mode picker is not taking effect.
+**7b — External display**
+1. Move Safari fully onto the external display. Pick **16:9 → `1280x720`** again.
+2. Repeat the capture:
+
+```bash
+screencapture -o -w ~/Desktop/external.png
+sips -g pixelWidth -g pixelHeight ~/Desktop/external.png
+```
+
+**Expected: `pixelWidth: 1280`, `pixelHeight: 720`.** The same as 7a. The window's *point* size
+will differ from 7a if the external display has a different scale factor (e.g. 1280 × 720 pt at
+1×, not 640 × 360), but the captured *pixel* size must be identical on both displays.
+
+**The pass condition is that both captures give the same pixel dimensions, matching the preset.**
+If 7a and 7b disagree, the display-relative conversion is broken.
 
 **On using an actual recording:** ⌘⇧5 → *Record Selected Window* also works, and
 `mdls -name kMDItemPixelWidth -name kMDItemPixelHeight <file>` reads its dimensions — but the
@@ -190,8 +201,8 @@ number.
 3. Click the ScreenResize menu bar icon.
 
 **Expected:**
-- The menu body is **replaced entirely** by the permission call to action. No header, no mode
-  picker, no favorites, no size lists anywhere.
+- The menu body is **replaced entirely** by the permission call to action. No header, no
+  favorites, no size lists anywhere.
 - The onboarding window reappears on its own.
 
 4. Toggle ScreenResize **back on**, then click the ScreenResize onboarding window.
@@ -209,12 +220,10 @@ number.
 **Expected:**
 - Header reads **`ScreenResize`** with a reason such as **`That application has no resizable
   window.`**
-- **No size lists, no favorites, no mode picker** — only the reason, Settings, and Quit.
+- **No size lists, no favorites** — only the reason, Settings, and Quit.
 - No crash, no banner, no spinner.
 
 3. Open a Finder window (⌘N) and reopen the menu — the full menu returns.
-
-⚠️ The mode picker is unreachable in this state — see Known Issue **10**.
 
 ## 10. Favorites, custom sizes, hotkeys, login item (2 min)
 
@@ -226,11 +235,12 @@ number.
    → Enter `1920` × `1080` and click Add: **`1920x1080 is already in your custom sizes.`**
 3. Settings → **Shortcuts** → record a shortcut for **Favorite 1**. Close Settings, focus Safari,
    press it.
-   → Safari resizes to `1280x720`.
+   → Safari's window changes to whatever point size `1280x720` pixels resolves to on its current
+   display (640 × 360 pt at 2×, per Setup).
 4. Settings → **General** → **Launch at login**.
    → Running from DerivedData this is **disabled**, with text telling you to move the app to
    Applications. That is correct behaviour, not a bug.
-5. Quit and relaunch. Favorites, custom sizes and sizing mode all persist
+5. Quit and relaunch. Favorites and custom sizes both persist
    (`~/Library/Preferences/com.deiondrickroberts.ScreenResize.plist`).
 
 ---
@@ -300,17 +310,18 @@ runs against `allResolutions`, which includes the shipped catalog. Adding `1920x
 preset you never created — claims it is already in *your* custom sizes. Correct refusal, wrong
 explanation. Visible in case 10 step 2.
 
-### 10. The sizing mode picker is unreachable with no target window
-
-In `.noTargetWindow` the menu renders only the reason and the footer. Sizing mode can still be
-changed in Settings, but not from the menu, which is where it lives the rest of the time.
-
 ### Not bugs, but expect them
 
+- **The sizing-mode toggle is gone.** Every preset now always targets pixels-relative-to-the-
+  active-display (what used to be called "Capture" mode); there is no way to force a preset's raw
+  numbers to be points regardless of scale. If you're looking for a "Logical" option from an
+  earlier build, it was intentionally removed — see the note in Setup.
 - **Launch at login is disabled** unless the app is in an Applications folder. Deliberate: a login
   item pointing into DerivedData would break on the next clean build.
 - **Accessibility permission dies on every rebuild.** The designated requirement is a bare cdhash.
   A self-signed certificate fixes it permanently — steps are in CLAUDE.md.
-- **1080-tall targets are borderline.** At 1800 × 1169 pt the visible frame is only 1065 pt tall,
-  so anything 1080 pt tall is *too large by 15 points*. This has caught me twice in test
-  expectations; it will look like a bug and is not.
+- **A seemingly-safe round-number target can still miss by a few points.** The automated test
+  fixtures deliberately include a case where a 1080pt-tall target misses a 1075pt-tall visible
+  frame by 5 points — the menu bar and Dock eat more of the display than intuition suggests. The
+  exact numbers depend entirely on *your* live display's chrome (see Setup); don't assume a given
+  preset fits just because the display "looks big enough."

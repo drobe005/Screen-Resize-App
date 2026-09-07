@@ -88,13 +88,6 @@ public final class MenuBarModel: ObservableObject {
     /// Set when a launch-at-login change was refused.
     @Published public private(set) var launchAtLoginError: String?
 
-    @Published public var sizingMode: SizingMode {
-        didSet {
-            guard sizingMode != oldValue else { return }
-            preferences.sizingMode = sizingMode
-        }
-    }
-
     private let windowManager: WindowManaging
     private let screens: ScreenProviding
     private let frontmostTracker: FrontmostApplicationTracking
@@ -123,7 +116,6 @@ public final class MenuBarModel: ObservableObject {
         self.trustMonitor = trustMonitor
         self.settingsOpener = settingsOpener
         self.loginItem = loginItem
-        self.sizingMode = preferences.sizingMode
         self.favoriteResolutionIDs = preferences.favoriteResolutionIDs
         self.customSizes = preferences.customSizes
         self.launchesAtLogin = loginItem.isEnabled
@@ -306,7 +298,6 @@ public final class MenuBarModel: ObservableObject {
 
         let target = WindowGeometry.targetPointSize(
             for: resolution,
-            mode: sizingMode,
             backingScaleFactor: display.backingScaleFactor
         )
         let fits = WindowGeometry.fits(target, in: display)
@@ -349,8 +340,7 @@ public final class MenuBarModel: ObservableObject {
             }
 
             let size = WindowGeometry.targetPointSize(
-                for: option.resolution, mode: sizingMode,
-                backingScaleFactor: display.backingScaleFactor
+                for: option.resolution, backingScaleFactor: display.backingScaleFactor
             )
             let origin = WindowGeometry.centeredOriginInAXSpace(for: size, in: display)
             let (target, _) = WindowGeometry.clamped(

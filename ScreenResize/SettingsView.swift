@@ -31,18 +31,6 @@ private struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
-            Picker("Sizing mode", selection: $model.sizingMode) {
-                ForEach(SizingMode.allCases, id: \.self) { mode in
-                    Text(mode.menuTitle).tag(mode)
-                }
-            }
-            .pickerStyle(.inline)
-
-            Text(model.sizingMode.explanation)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
             Section {
                 Toggle("Launch at login", isOn: Binding(
                     get: { model.launchesAtLogin },

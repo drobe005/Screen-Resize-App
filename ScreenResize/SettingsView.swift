@@ -185,16 +185,38 @@ private struct ShortcutsSettingsView: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Form {
+            // Deliberately NOT a Form/List. KeyboardShortcuts.Recorder is an
+            // AppKit-hosted field, and Form's own key handling intercepts the
+            // keystroke before the Recorder sees it: the field focuses but
+            // never records anything. A plain VStack has no such interception.
+            VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(KeyboardShortcuts.Name.favoriteSlots.enumerated()), id: \.offset) {
                     slot, name in
-                    KeyboardShortcuts.Recorder(FavoriteSlot.title(for: slot), name: name)
-                    Text(assignment(for: slot))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    // Every row must be structurally identical. A `if slot > 0`
+                    // around this divider made rows 2-5 conditional content while
+                    // row 1 was not, and the recorders in the conditional rows
+                    // fell back to plain text-field behaviour: RecorderCocoa
+                    // refuses to become first responder when its view is not
+                    // properly in a window, and silently behaves like the
+                    // NSSearchField it subclasses. Hide the divider by value,
+                    // never by structure.
+                    Divider()
+                        .opacity(slot == 0 ? 0 : 1)
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(FavoriteSlot.title(for: slot))
+                            Text(assignment(for: slot))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        KeyboardShortcuts.Recorder(for: name)
+                    }
+                    .padding(.vertical, 8)
                 }
             }
-            .formStyle(.grouped)
+            .padding(.horizontal, 12)
+            .background(RoundedRectangle(cornerRadius: 8).fill(.quaternary.opacity(0.3)))
         }
         .scenePadding()
     }

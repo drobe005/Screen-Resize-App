@@ -230,7 +230,16 @@ surface, not scattered through the app.
 No third-party dependencies, with one exception:
 
 - `KeyboardShortcuts` by Sindre Sorhus — added in the hotkeys phase, pinned
-  `upToNextMajorVersion` from 1.9.4 (resolves to 1.17.0). It is wired into the
+  `upToNextMajorVersion` from 3.0.1 (resolves to 3.0.1 as of this writing).
+  Originally pinned from 1.9.4 (resolved 1.17.0), but 1.x's `Recorder` silently
+  degrades to plain text-field behavior on newer macOS — the field focuses and
+  a keystroke shows up as literal typed text (with a text-insertion caret)
+  instead of being captured as a shortcut, because its AppKit-level key
+  interception doesn't engage. The 2.x/3.x changelog has multiple fixes in
+  exactly this area (`"Fix first responder warning in SwiftUI contexts"`,
+  option-key handling on macOS 15+), so this is a known compatibility gap in
+  the old pin, not a bug in this codebase. `Recorder(for:)`, the only API this
+  project uses, is unchanged across the bump. It is wired into the
   hand-written `project.pbxproj` by hand: `XCRemoteSwiftPackageReference`,
   `XCSwiftPackageProductDependency`, the project's `packageReferences`, the app
   target's `packageProductDependencies`, and a `PBXBuildFile` carrying a

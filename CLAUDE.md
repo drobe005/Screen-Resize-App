@@ -1,7 +1,7 @@
 # ScreenResize
 
 A macOS menu bar app that resizes the currently focused window of any application
-to preset resolutions and aspect ratios.
+to preset resolutions.
 
 ## Build and test
 
@@ -178,8 +178,9 @@ resolution fit on this display, and if not, by how much.
 
 ### Resolution presets live in a single data model
 
-One source of truth for every preset (resolution, aspect ratio, label). UI code
-reads from it. **Never hardcode a resolution in UI code** — no `1920`, `1080`,
+One source of truth for every preset (`ResolutionCatalog.all` — a flat list,
+ordered largest first, holding dimensions and an optional label). UI code reads
+from it and does no sorting or grouping of its own. **Never hardcode a resolution in UI code** — no `1920`, `1080`,
 `16:9` literal in any view.
 
 This is enforced mechanically, not by review. `scripts/check-ui-literals.sh` scans

@@ -35,25 +35,38 @@ struct MenuBarContentView: View {
                 if let failure = model.failureMessage {
                     FailureBannerView(message: failure)
                 }
-                let favorites = model.favoriteOptions()
-                if !favorites.isEmpty {
-                    FavoritesSection(options: favorites, apply: model.apply)
-                    Divider()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 10) {
+                        let favorites = model.favoriteOptions()
+                        if !favorites.isEmpty {
+                            SizeSection(
+                                heading: "Favorites",
+                                options: favorites,
+                                symbol: "star.fill",
+                                apply: model.apply
+                            )
+                        }
+
+                        let custom = model.customOptions()
+                        if !custom.isEmpty {
+                            SizeSection(
+                                heading: "Custom Sizes",
+                                options: custom,
+                                symbol: nil,
+                                apply: model.apply
+                            )
+                        }
+
+                        SizeSection(
+                            heading: "Preset Sizes",
+                            options: model.presetOptions(),
+                            symbol: nil,
+                            apply: model.apply
+                        )
+                    }
                 }
-                if let custom = model.customGroup {
-                    AspectRatioGroupMenu(
-                        heading: custom.heading,
-                        options: model.options(in: custom),
-                        apply: model.apply
-                    )
-                }
-                ForEach(ResolutionCatalog.groups) { group in
-                    AspectRatioGroupMenu(
-                        heading: group.heading,
-                        options: model.options(in: group),
-                        apply: model.apply
-                    )
-                }
+                .frame(maxHeight: 420)
+
                 Divider()
                 footer
             }
@@ -103,39 +116,33 @@ private struct MenuHeaderView: View {
     }
 }
 
-/// Starred sizes, pinned above the groups. Flat rather than a submenu: the whole
-/// point is reaching them without a hover.
-private struct FavoritesSection: View {
+/// A titled, flat run of sizes. No submenus: the dimensions already tell you the
+/// shape of a window, so grouping by aspect ratio only added a hover between the
+/// user and the thing they came to click.
+private struct SizeSection: View {
+    let heading: String
     let options: [ResolutionOption]
+    /// Optional leading glyph, used to mark favorites.
+    let symbol: String?
     let apply: (ResolutionOption) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("Favorites")
+            Text(heading)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
+
             ForEach(options) { option in
                 Button {
                     apply(option)
                 } label: {
-                    Label(option.menuLabel, systemImage: "star.fill")
+                    if let symbol {
+                        Label(option.menuLabel, systemImage: symbol)
+                    } else {
+                        Text(option.menuLabel)
+                    }
                 }
                 .disabled(!option.isEnabled)
-            }
-        }
-    }
-}
-
-private struct AspectRatioGroupMenu: View {
-    let heading: String
-    let options: [ResolutionOption]
-    let apply: (ResolutionOption) -> Void
-
-    var body: some View {
-        Menu(heading) {
-            ForEach(options) { option in
-                Button(option.menuLabel) { apply(option) }
-                    .disabled(!option.isEnabled)
             }
         }
     }

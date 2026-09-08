@@ -69,17 +69,13 @@ private struct FavoritesSettingsView: View {
                 .foregroundStyle(.secondary)
 
             List {
-                ForEach(ResolutionCatalog.groups) { group in
-                    Section(group.heading) {
-                        ForEach(group.resolutions) { resolution in
-                            Toggle(isOn: Binding(
-                                get: { model.isFavorite(resolution) },
-                                set: { _ in model.toggleFavorite(resolution) }
-                            )) {
-                                Text(resolution.label.map { "\(resolution.name) — \($0)" }
-                                     ?? resolution.name)
-                            }
-                        }
+                ForEach(model.allResolutions) { resolution in
+                    Toggle(isOn: Binding(
+                        get: { model.isFavorite(resolution) },
+                        set: { _ in model.toggleFavorite(resolution) }
+                    )) {
+                        Text(resolution.label.map { "\(resolution.name) — \($0)" }
+                             ?? resolution.name)
                     }
                 }
             }

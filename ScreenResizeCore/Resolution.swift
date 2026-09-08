@@ -20,21 +20,3 @@ public struct Resolution: Equatable, Identifiable, Sendable {
         self.label = label
     }
 }
-
-/// Resolutions gathered under a heading.
-///
-/// `heading` is a human-facing label such as "21:9". It is **not** a reliable
-/// aspect ratio and must never be parsed as one: under "21:9", 2560x1080 is
-/// really 64:27 and 3440x1440 is 43:18. Aspect-ratio math always uses a
-/// `Resolution`'s own pixel dimensions.
-public struct AspectRatioGroup: Equatable, Identifiable, Sendable {
-    public let heading: String
-    public let resolutions: [Resolution]
-
-    public var id: String { heading }
-
-    public init(heading: String, resolutions: [Resolution]) {
-        self.heading = heading
-        self.resolutions = resolutions
-    }
-}

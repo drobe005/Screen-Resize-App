@@ -2,7 +2,7 @@
 
 Run before any release. Target: **under 15 minutes**. Times per case are budgets, not guesses.
 
-Automated tests cover the pure logic (`./scripts/test.sh`, 137 tests). This checklist covers
+Automated tests cover the pure logic (`./scripts/test.sh`, 136 tests). This checklist covers
 only what a machine cannot: real windows, real apps, real permission dialogs.
 
 ---
@@ -48,6 +48,11 @@ Every number in this document assumes the configuration measured at time of writ
 - Fits when `target ≤ 3008 × 1597` pt
 - Centred AX origin: `x = (3008 − w) / 2`, `y = 1692 − (65 + (1597 − h) / 2 + h)`
 
+**The menu is one flat list.** Aspect-ratio submenus (16:9, 16:10, 3:2, 21:9, 4:3) were
+removed; every preset is now a single click under **Preset Sizes**, ordered largest first, with
+**Favorites** and **Custom Sizes** as sections above it. The list scrolls if it outgrows the
+popover.
+
 **There is no longer a sizing-mode toggle.** Every preset's numbers are always physical pixels,
 divided by the *active display's own scale factor* to get the point size actually applied. A
 preset therefore targets a different point size — and can go from fitting to not fitting — purely
@@ -61,7 +66,7 @@ whichever display the window is currently on. Case 6 exercises this directly.
 1. Open Safari. Give it an obviously non-preset size by dragging a corner.
 2. Click the ScreenResize menu bar icon.
 3. Confirm the header reads **`Safari`**, its current size in points, and **`2× display`**.
-4. Open **16:9** and click **`1280x720 — 720p / HD`**.
+4. Under **Preset Sizes**, click **`1280x720 — 720p / HD`**.
 
 **Expected:**
 - `1280x720` is a pixel preset. At this display's 2× scale that's **640 × 360 pt**, centred:
@@ -79,7 +84,7 @@ Use a fixed-size window. **System Settings** works; so does most apps' About box
 
 1. Focus the fixed-size window.
 2. Open the menu — the header should name that app.
-3. Pick **`1280x720`** in 16:9 (any enabled size works; this keeps the numbers below concrete).
+3. Pick **`1280x720`** (any enabled size works; this keeps the numbers below concrete).
 
 **Expected:**
 - An orange banner: **`<App> refused to resize to 640 × 360 pt.`** (640×360 pt is what `1280x720`
@@ -97,7 +102,7 @@ Silent failure is the one thing CLAUDE.md calls out as unacceptable.
 Use VS Code, Slack, Discord, or Figma.
 
 1. Focus the Electron window and resize it by dragging first.
-2. Open the menu, pick **`1280x720`** in 16:9.
+2. Open the menu, pick **`1280x720`**.
 
 **Expected (best case):** resizes exactly like case 1 (640 × 360 pt), banner absent.
 
@@ -127,7 +132,7 @@ Known Issue **2**. Both outcomes above are a pass *today*; neither is good.
 
 1. Drag a Safari window so roughly **60%** sits on the external display and 40% on the laptop.
 2. Open the menu and note which display's scale the header reports.
-3. Pick **`1280x720`** in 16:9.
+3. Pick **`1280x720`**.
 
 **Expected:**
 - The header reports the scale of the display holding **most** of the window.
@@ -144,7 +149,7 @@ always relative to whichever display the window is on, with no toggle involved.
 
 1. Put a Safari window **fully on the laptop** (2×). Open the menu.
    - Header shows **`2× display`**.
-   - `2560x1440` (16:9) should be **enabled**, targeting **1280 × 720 pt**.
+   - `2560x1440` should be **enabled**, targeting **1280 × 720 pt**.
 2. Move the same window **fully onto the external display** (1×). Reopen the menu.
    - Header shows **`1× display`**.
    - The *same* `2560x1440` preset now targets **2560 × 1440 pt** — four times the on-screen
@@ -161,7 +166,7 @@ The case that proves "relative to the active display" does what it claims: the s
 capture at the *same pixel dimensions* on both displays, even though its point size differs.
 
 **7a — Laptop (2×)**
-1. Put Safari fully on the laptop display. Pick **16:9 → `1280x720`**.
+1. Put Safari fully on the laptop display. Pick **`1280x720`**.
 2. Capture the window without its shadow, then measure:
 
 ```bash
@@ -174,7 +179,7 @@ The window is 640 × 360 pt (this display's 2× scale), which captures at exactl
 — matching the preset name.
 
 **7b — External display**
-1. Move Safari fully onto the external display. Pick **16:9 → `1280x720`** again.
+1. Move Safari fully onto the external display. Pick **`1280x720`** again.
 2. Repeat the capture:
 
 ```bash
@@ -229,10 +234,11 @@ number.
 ## 10. Favorites, custom sizes, hotkeys, login item (2 min)
 
 1. Settings → **Favorites** → star `1280x720` and `1024x768`.
-   → Menu shows a **Favorites** section above the groups, in star order, with star icons.
+   → Menu shows a **Favorites** section at the top, in star order, with star icons.
+   → The list is flat and includes any custom sizes, so those can be starred too.
 2. Settings → **Custom Sizes** → enter `1720` × `1000`.
-   → Live ratio reads **`43:25`** before you click Add. After Add, a **Custom** submenu appears
-   above 16:9 containing `1720x1000 — 43:25`.
+   → Live ratio reads **`43:25`** before you click Add. After Add, a **Custom Sizes**
+   section appears in the menu above Preset Sizes, containing `1720x1000 — 43:25`.
    → Enter `1920` × `1080` and click Add: **`1920x1080 is already in your custom sizes.`**
 3. Settings → **Shortcuts** → record a shortcut for **Favorite 1**. Close Settings, focus Safari,
    press it.

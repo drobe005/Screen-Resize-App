@@ -94,9 +94,7 @@ final class PermissionLifecycleTests: XCTestCase {
         model = makeModel()
         model.refresh()
 
-        let option = ResolutionCatalog.groups
-            .flatMap { model.options(in: $0) }
-            .first { $0.resolution.name == "1280x720" }!
+        let option = model.presetOptions().first { $0.resolution.name == "1280x720" }!
         model.apply(option)
         XCTAssertNotNil(model.failureMessage)
 
@@ -117,9 +115,8 @@ final class PermissionLifecycleTests: XCTestCase {
         windowManager.isTrusted = false
         model = makeModel()
         model.refresh()
-        for group in ResolutionCatalog.groups {
-            XCTAssertTrue(model.options(in: group).isEmpty)
-        }
+        XCTAssertTrue(model.presetOptions().isEmpty)
+        XCTAssertTrue(model.customOptions().isEmpty)
     }
 
     // J9 — the deep link must actually be a valid URL.

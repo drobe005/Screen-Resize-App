@@ -218,9 +218,16 @@ public final class MenuBarModel: ObservableObject {
 
     /// The rows for one aspect-ratio group, resolved against the current display
     /// and sizing mode. Empty when there is no window to act on.
-    public func options(in group: AspectRatioGroup) -> [ResolutionOption] {
+    /// The built-in presets, largest first. Empty when there is no window to act on.
+    public func presetOptions() -> [ResolutionOption] {
         guard currentDisplay != nil else { return [] }
-        return group.resolutions.compactMap(makeOption(for:))
+        return ResolutionCatalog.all.compactMap(makeOption(for:))
+    }
+
+    /// The user's own sizes, in the order they were added.
+    public func customOptions() -> [ResolutionOption] {
+        guard currentDisplay != nil else { return [] }
+        return customSizes.map(\.resolution).compactMap(makeOption(for:))
     }
 
     /// Starred resolutions, in star order, resolved against the current display.
@@ -236,13 +243,7 @@ public final class MenuBarModel: ObservableObject {
 
     /// Every resolution the app knows about, built-in and custom.
     public var allResolutions: [Resolution] {
-        ResolutionCatalog.allResolutions + customSizes.map(\.resolution)
-    }
-
-    /// The user's sizes as a group, or nil when there are none to show.
-    public var customGroup: AspectRatioGroup? {
-        guard !customSizes.isEmpty else { return nil }
-        return AspectRatioGroup(heading: "Custom", resolutions: customSizes.map(\.resolution))
+        ResolutionCatalog.all + customSizes.map(\.resolution)
     }
 
     /// Adds a custom size after validating it.

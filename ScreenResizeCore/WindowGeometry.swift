@@ -276,8 +276,8 @@ public enum WindowGeometry {
     /// Returns nil for a non-positive size rather than dividing by zero.
     ///
     /// This computes the *real* ratio, which is frequently not the one a display
-    /// is marketed as: 2560x1080 reduces to 64:27, not 21:9. See the note on
-    /// `AspectRatioGroup.heading`.
+    /// is marketed as: 2560x1080 reduces to 64:27 and 3440x1440 to 43:18, neither
+    /// of which is the 21:9 they are sold as. Used to label custom sizes.
     public static func aspectRatio(of size: PixelSize) -> (widthTerm: Int, heightTerm: Int)? {
         let width = Int(size.widthInPixels.rounded())
         let height = Int(size.heightInPixels.rounded())

@@ -73,10 +73,9 @@ final class CustomSizeTests: XCTestCase {
     func testM6_addingACustomSizeMakesItAvailableAsAGroup() throws {
         try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)
 
-        let group = try XCTUnwrap(model.customGroup)
-        XCTAssertEqual(group.heading, "Custom")
-        XCTAssertEqual(group.resolutions.map(\.name), ["1720x1080"])
-        XCTAssertEqual(group.resolutions[0].label, "43:27")
+        let options = model.customOptions()
+        XCTAssertEqual(options.map(\.resolution.name), ["1720x1080"])
+        XCTAssertEqual(options[0].resolution.label, "43:27")
     }
 
     func testM7_customSizesBehaveExactlyLikeBuiltInPresets() throws {
@@ -89,8 +88,7 @@ final class CustomSizeTests: XCTestCase {
         try model.addCustomSize(widthInPixels: 1720, heightInPixels: 2160)
         try model.addCustomSize(widthInPixels: 9000, heightInPixels: 9000)
 
-        let group = try XCTUnwrap(model.customGroup)
-        let options = model.options(in: group)
+        let options = model.customOptions()
 
         XCTAssertTrue(options[0].isEnabled, "2000 px tall is 1000 pt at 2x, fits a 1075 pt frame")
         XCTAssertFalse(options[1].isEnabled, "2160 px tall is 1080 pt at 2x, exceeds a 1075 pt frame")
@@ -135,7 +133,7 @@ final class CustomSizeTests: XCTestCase {
 
     func testM12_aCustomSizeCanBeStarred() throws {
         try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)
-        let custom = try XCTUnwrap(model.customGroup?.resolutions.first)
+        let custom = try XCTUnwrap(model.customSizes.first?.resolution)
 
         model.toggleFavorite(custom)
 
@@ -154,7 +152,7 @@ final class CustomSizeTests: XCTestCase {
         XCTAssertTrue(model.customSizes.isEmpty)
         XCTAssertTrue(model.favoriteResolutionIDs.isEmpty,
                       "A deleted size must not linger as a dangling favorite")
-        XCTAssertNil(model.customGroup)
+        XCTAssertTrue(model.customOptions().isEmpty)
     }
 
     func testM14_corruptStoredDataYieldsNoCustomSizesRatherThanCrashing() {

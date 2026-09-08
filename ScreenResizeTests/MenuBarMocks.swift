@@ -81,10 +81,6 @@ enum Fixtures {
 
     /// A resolution from the real catalog, by name.
     static func catalogResolution(_ name: String) -> Resolution {
-        ResolutionCatalog.allResolutions.first { $0.name == name }!
-    }
-
-    static func group(_ heading: String) -> AspectRatioGroup {
-        ResolutionCatalog.groups.first { $0.heading == heading }!
+        ResolutionCatalog.all.first { $0.name == name }!
     }
 }

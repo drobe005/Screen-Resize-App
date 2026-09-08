@@ -41,10 +41,10 @@ final class MenuBarModelTests: XCTestCase {
     func testI2_missingPermissionExposesNoOptions() {
         windowManager.isTrusted = false
         model.refresh()
-        for group in ResolutionCatalog.groups {
-            XCTAssertTrue(model.options(in: group).isEmpty,
-                          "No size lists may be offered without permission")
-        }
+        XCTAssertTrue(model.presetOptions().isEmpty,
+                      "No size lists may be offered without permission")
+        XCTAssertTrue(model.customOptions().isEmpty)
+        XCTAssertTrue(model.favoriteOptions().isEmpty)
     }
 
     func testI3_noFrontmostApplication() {
@@ -296,12 +296,11 @@ final class MenuBarModelTests: XCTestCase {
     // MARK: - Helpers
 
     private func option(named name: String) -> ResolutionOption {
-        for group in ResolutionCatalog.groups {
-            if let match = model.options(in: group).first(where: { $0.resolution.name == name }) {
-                return match
-            }
+        let all = model.presetOptions() + model.customOptions()
+        guard let match = all.first(where: { $0.resolution.name == name }) else {
+            fatalError("No option named \(name)")
         }
-        fatalError("No option named \(name)")
+        return match
     }
 
     private func enabledOption(named name: String) -> ResolutionOption {

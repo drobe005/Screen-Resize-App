@@ -5,71 +5,75 @@ import ScreenResizeCore
 /// Pure data assertions: no display, no scale factor, no geometry.
 final class ResolutionCatalogTests: XCTestCase {
 
-    private var groups: [AspectRatioGroup] { ResolutionCatalog.groups }
+    private var all: [Resolution] { ResolutionCatalog.all }
 
     // A1
-    func testCatalogHasFiveGroupsInOrder() {
-        XCTAssertEqual(groups.map(\.heading), ["16:9", "16:10", "3:2", "21:9", "4:3"])
-    }
-
-    // A2
-    func testGroupSizesAndTotalCount() {
-        XCTAssertEqual(groups.map(\.resolutions.count), [5, 2, 2, 2, 3])
-        XCTAssertEqual(groups.flatMap(\.resolutions).count, 14)
-    }
-
-    // A3
-    func testEveryGroupHoldsTheSpecifiedResolutionsInOrder() throws {
-        let expected: [String: [(Int, Int)]] = [
-            "16:9":  [(1280, 720), (1920, 1080), (2560, 1440), (3840, 2160), (7680, 4320)],
-            "16:10": [(1920, 1200), (2560, 1600)],
-            "3:2":   [(2160, 1440), (3000, 2000)],
-            "21:9":  [(2560, 1080), (3440, 1440)],
-            "4:3":   [(640, 480), (1024, 768), (1600, 1200)],
+    func testCatalogHoldsTheExpectedPresets() {
+        let expected = [
+            (7680, 4320), (3840, 2160), (3440, 1440), (3000, 2000),
+            (2560, 1600), (2560, 1440), (2560, 1080), (2160, 1440),
+            (1920, 1200), (1920, 1080), (1600, 1200), (1280, 720),
+            (1024, 768), (640, 480),
         ]
-
-        XCTAssertEqual(Set(groups.map(\.heading)), Set(expected.keys))
-        for group in groups {
-            let wanted = try XCTUnwrap(expected[group.heading], "Unexpected group \(group.heading)")
-            let actual = group.resolutions.map {
-                (Int($0.pixelSize.widthInPixels), Int($0.pixelSize.heightInPixels))
-            }
-            XCTAssertEqual(actual.count, wanted.count, "Group \(group.heading)")
-            for (a, w) in zip(actual, wanted) {
-                XCTAssertEqual(a.0, w.0, "Group \(group.heading) width")
-                XCTAssertEqual(a.1, w.1, "Group \(group.heading) height")
-            }
+        let actual = all.map {
+            (Int($0.pixelSize.widthInPixels), Int($0.pixelSize.heightInPixels))
+        }
+        XCTAssertEqual(actual.count, expected.count)
+        for (a, e) in zip(actual, expected) {
+            XCTAssertEqual(a.0, e.0)
+            XCTAssertEqual(a.1, e.1)
         }
     }
 
-    // A4
+    // A2 — the list is flat and ordered largest first, so the menu needs no
+    // grouping and no sorting of its own.
+    func testCatalogIsSortedLargestFirst() {
+        let dimensions = all.map {
+            ($0.pixelSize.widthInPixels, $0.pixelSize.heightInPixels)
+        }
+        for (previous, next) in zip(dimensions, dimensions.dropFirst()) {
+            XCTAssertTrue(
+                previous.0 > next.0 || (previous.0 == next.0 && previous.1 > next.1),
+                "\(previous) should sort before \(next)"
+            )
+        }
+    }
+
+    // A3
     func testEveryResolutionHasPositiveDimensions() {
-        for resolution in groups.flatMap(\.resolutions) {
+        for resolution in all {
             XCTAssertGreaterThan(resolution.pixelSize.widthInPixels, 0, resolution.name)
             XCTAssertGreaterThan(resolution.pixelSize.heightInPixels, 0, resolution.name)
         }
     }
 
-    // A5 — the group heading is a marketing label, not a computed ratio.
-    // Nothing in the geometry layer may derive an aspect ratio from it.
-    func testTwentyOneByNineHeadingIsNotTheActualRatio() throws {
-        let nominal: CGFloat = 21.0 / 9.0            // 2.3333
-        let ultrawide = try XCTUnwrap(groups.first { $0.heading == "21:9" }).resolutions
-        XCTAssertEqual(ultrawide.count, 2)
+    // A4
+    func testResolutionNamesAreUniqueAndMatchTheirDimensions() {
+        let names = all.map(\.name)
+        XCTAssertEqual(Set(names).count, names.count, "names double as persisted IDs")
 
-        let ratios = ultrawide.map { $0.pixelSize.widthInPixels / $0.pixelSize.heightInPixels }
-
-        XCTAssertEqual(ratios[0], 2560.0 / 1080.0, accuracy: 0.0001)  // 64:27, 2.3704
-        XCTAssertEqual(ratios[1], 3440.0 / 1440.0, accuracy: 0.0001)  // 43:18, 2.3889
-        for ratio in ratios {
-            XCTAssertGreaterThan(abs(ratio - nominal), 0.01,
-                                 "Heading 21:9 must not be treated as the real ratio")
+        for resolution in all {
+            let expected = "\(Int(resolution.pixelSize.widthInPixels))"
+                + "x\(Int(resolution.pixelSize.heightInPixels))"
+            XCTAssertEqual(resolution.name, expected)
         }
     }
 
-    // A6
-    func testResolutionNamesAreUniqueAcrossTheCatalog() {
-        let names = groups.flatMap(\.resolutions).map(\.name)
-        XCTAssertEqual(Set(names).count, names.count)
+    // A5 — ultrawide entries are kept, but nothing in the model claims they are
+    // 21:9. Their real reduced ratios are 64:27 and 43:18.
+    func testUltrawidePresetsAreNotActuallyTwentyOneByNine() {
+        let nominal: CGFloat = 21.0 / 9.0
+        for name in ["2560x1080", "3440x1440"] {
+            let resolution = all.first { $0.name == name }!
+            let ratio = resolution.pixelSize.widthInPixels / resolution.pixelSize.heightInPixels
+            XCTAssertGreaterThan(abs(ratio - nominal), 0.01,
+                                 "\(name) is not 21:9 and must not be treated as such")
+        }
+        XCTAssertEqual(
+            WindowGeometry.aspectRatioDescription(
+                of: all.first { $0.name == "2560x1080" }!.pixelSize), "64:27")
+        XCTAssertEqual(
+            WindowGeometry.aspectRatioDescription(
+                of: all.first { $0.name == "3440x1440" }!.pixelSize), "43:18")
     }
 }

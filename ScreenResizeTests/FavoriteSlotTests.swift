@@ -38,19 +38,14 @@ final class FavoriteSlotTests: XCTestCase {
     }
 
     func testO2_firingASlotAppliesTheFavoriteAtThatPosition() {
-        // At this fixture's 2x scale, 2560x1440 px is 1280x720 pt (fits the
-        // 2000x1075 visible frame) -- so use a preset that is genuinely too wide
-        // at 2x to keep slot 0 the "does not fit" case: 3840x2160 px is 1920x1080
-        // pt, which exceeds the 1075pt visible height.
-        model.toggleFavorite(Fixtures.catalogResolution("3840x2160"))   // slot 0, too tall
-        model.toggleFavorite(Fixtures.catalogResolution("1280x720"))    // slot 1, fits
+        model.toggleFavorite(Fixtures.catalogResolution("3840x2160"))   // slot 0
+        model.toggleFavorite(Fixtures.catalogResolution("1280x720"))    // slot 1
 
         model.applyFavoriteSlot(1)
 
         XCTAssertEqual(windowManager.appliedFrames.count, 1)
-        // 1280x720 PIXELS at 2x scale is 640x360 POINTS.
         XCTAssertEqual(windowManager.appliedFrames[0].size,
-                       PointSize(widthInPoints: 640, heightInPoints: 360))
+                       PointSize(widthInPoints: 1280, heightInPoints: 720))
     }
 
     func testO3_firingWithoutAMenuOpenStillResolvesTheDisplay() {
@@ -86,13 +81,16 @@ final class FavoriteSlotTests: XCTestCase {
         XCTAssertNotNil(model.failureMessage)
     }
 
-    func testO6_slotPointingAtATooLargeSizeExplainsInsteadOfResizing() {
+    func testO6_slotPointingAtAnOversizedPresetFillsTheDisplay() {
+        // Nothing is refused any more: an oversized preset fills the screen
+        // rather than doing nothing, which is what makes a hotkey worth pressing.
         model.toggleFavorite(Fixtures.catalogResolution("7680x4320"))
 
         model.applyFavoriteSlot(0)
 
-        XCTAssertTrue(windowManager.appliedFrames.isEmpty)
-        XCTAssertEqual(model.failureMessage, "7680x4320 — too large for this display")
+        XCTAssertEqual(windowManager.appliedFrames.count, 1)
+        XCTAssertEqual(windowManager.appliedFrames[0].size,
+                       PointSize(widthInPoints: 2000, heightInPoints: 1075))
     }
 
     func testO7_restarringRepointsASlotRatherThanBreakingIt() {
@@ -102,8 +100,7 @@ final class FavoriteSlotTests: XCTestCase {
 
         model.applyFavoriteSlot(0)
 
-        // 1024x768 PIXELS at 2x scale is 512x384 POINTS.
         XCTAssertEqual(windowManager.appliedFrames[0].size,
-                       PointSize(widthInPoints: 512, heightInPoints: 384))
+                       PointSize(widthInPoints: 1024, heightInPoints: 768))
     }
 }

@@ -8,18 +8,18 @@ import Foundation
 /// apply pipeline — can tell a custom size from a built-in one.
 public struct CustomSize: Codable, Equatable, Identifiable, Sendable {
 
-    public let widthInPixels: Int
-    public let heightInPixels: Int
+    public let widthInPoints: Int
+    public let heightInPoints: Int
 
-    public var id: String { "\(widthInPixels)x\(heightInPixels)" }
+    public var id: String { "\(widthInPoints)x\(heightInPoints)" }
 
-    public init(widthInPixels: Int, heightInPixels: Int) {
-        self.widthInPixels = widthInPixels
-        self.heightInPixels = heightInPixels
+    public init(widthInPoints: Int, heightInPoints: Int) {
+        self.widthInPoints = widthInPoints
+        self.heightInPoints = heightInPoints
     }
 
-    public var pixelSize: PixelSize {
-        PixelSize(widthInPixels: CGFloat(widthInPixels), heightInPixels: CGFloat(heightInPixels))
+    public var pointSize: PointSize {
+        PointSize(widthInPoints: CGFloat(widthInPoints), heightInPoints: CGFloat(heightInPoints))
     }
 
     /// The catalog entry this size becomes. Labelled with its real reduced
@@ -28,8 +28,8 @@ public struct CustomSize: Codable, Equatable, Identifiable, Sendable {
     public var resolution: Resolution {
         Resolution(
             name: id,
-            pixelSize: pixelSize,
-            label: WindowGeometry.aspectRatioDescription(of: pixelSize)
+            pointSize: pointSize,
+            label: WindowGeometry.aspectRatioDescription(of: pointSize)
         )
     }
 }
@@ -38,7 +38,7 @@ public struct CustomSize: Codable, Equatable, Identifiable, Sendable {
 /// silent clamp — see CLAUDE.md, hard constraint 4.
 public enum CustomSizeError: Error, Equatable {
     case notPositive
-    case tooLarge(maximumInPixels: Int)
+    case tooLarge(maximumInPoints: Int)
     case duplicate(name: String)
 }
 
@@ -59,5 +59,5 @@ public enum CustomSizeLimits {
     /// A sanity guard, not a hardware limit. Comfortably above 8K (7680) so no
     /// realistic capture target is refused, while still rejecting a typo that
     /// adds three zeroes.
-    public static let maximumInPixels = 30_000
+    public static let maximumInPoints = 30_000
 }

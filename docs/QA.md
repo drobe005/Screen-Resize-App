@@ -2,7 +2,7 @@
 
 Run before any release. Target: **under 15 minutes**. Times per case are budgets, not guesses.
 
-Automated tests cover the pure logic (`./scripts/test.sh`, 136 tests). This checklist covers
+Automated tests cover the pure logic (`./scripts/test.sh`, 133 tests). This checklist covers
 only what a machine cannot: real windows, real apps, real permission dialogs.
 
 ---
@@ -53,11 +53,13 @@ removed; every preset is now a single click under **Preset Sizes**, ordered larg
 **Favorites** and **Custom Sizes** as sections above it. The list scrolls if it outgrows the
 popover.
 
-**There is no longer a sizing-mode toggle.** Every preset's numbers are always physical pixels,
-divided by the *active display's own scale factor* to get the point size actually applied. A
-preset therefore targets a different point size — and can go from fitting to not fitting — purely
-because the window is on a different display. That's intentional: resizing is always relative to
-whichever display the window is currently on. Case 6 exercises this directly.
+**Presets are point values, applied as-is.** A `1920x1080` preset makes a window measuring
+1920×1080 points, on any display, regardless of scale factor. There is no pixel conversion and no
+sizing-mode toggle.
+
+**Nothing is ever greyed out.** A preset larger than the display is labelled `— fills this
+display` and, when picked, fills the visible frame instead of refusing. On a 1800×1065pt screen
+that applies to most of the catalog, so expect a lot of rows to say it.
 
 ---
 
@@ -69,10 +71,9 @@ whichever display the window is currently on. Case 6 exercises this directly.
 4. Under **Preset Sizes**, click **`1280x720 — 720p / HD`**.
 
 **Expected:**
-- `1280x720` is a pixel preset. At this display's 2× scale that's **640 × 360 pt**, centred:
-  AX origin **(1184, 648.5)**.
+- The window becomes **1280 × 720 pt** — the preset's numbers, used directly.
 - Visually: equal margins left and right, and the window sits below the menu bar.
-- Reopen the menu — header now reads **`640 × 360 pt`**.
+- Reopen the menu — header now reads **`1280 × 720 pt`**.
 - No orange failure banner.
 
 Repeat once with Finder to confirm it is not Safari-specific.
@@ -87,8 +88,7 @@ Use a fixed-size window. **System Settings** works; so does most apps' About box
 3. Pick **`1280x720`** (any enabled size works; this keeps the numbers below concrete).
 
 **Expected:**
-- An orange banner: **`<App> refused to resize to 640 × 360 pt.`** (640×360 pt is what `1280x720`
-  pixels becomes at this display's 2× scale — see Setup.)
+- An orange banner: **`<App> refused to resize to 1280 × 720 pt.`**
 - The window does **not** move or change size.
 - The app does not crash or hang.
 
@@ -104,9 +104,9 @@ Use VS Code, Slack, Discord, or Figma.
 1. Focus the Electron window and resize it by dragging first.
 2. Open the menu, pick **`1280x720`**.
 
-**Expected (best case):** resizes exactly like case 1 (640 × 360 pt), banner absent.
+**Expected (best case):** resizes exactly like case 1 (1280 × 720 pt), banner absent.
 
-**Also acceptable:** a banner reading `… resized to <actual> instead of 640 × 360 pt.` when the
+**Also acceptable:** a banner reading `… resized to <actual> instead of 1280 × 720 pt.` when the
 app enforces a minimum size — that is a truthful partial result.
 
 ⚠️ **A `refused to resize` banner while the window visibly did resize is a bug**, not a pass.
@@ -142,63 +142,42 @@ Known Issue **2**. Both outcomes above are a pass *today*; neither is good.
 Selection is by overlapping area, so the 60/40 split should be decisive. A 50/50 split is
 undefined; do not test it.
 
-## 6. Laptop vs external display with a different scale factor (2 min — needs a second display)
+## 6. Laptop vs external display (2 min — needs a second display)
 
-Best with a 1× external monitor beside the 2× laptop panel. This is the core feature: resizing is
-always relative to whichever display the window is on, with no toggle involved.
+Presets are points, so the same preset should produce the **same on-screen size** on both
+displays. What changes between them is only whether it fits.
 
-1. Put a Safari window **fully on the laptop** (2×). Open the menu.
-   - Header shows **`2× display`**.
-   - `2560x1440` should be **enabled**, targeting **1280 × 720 pt**.
-2. Move the same window **fully onto the external display** (1×). Reopen the menu.
-   - Header shows **`1× display`**.
-   - The *same* `2560x1440` preset now targets **2560 × 1440 pt** — four times the on-screen
-     area — and is **disabled** unless that display has at least that much visible space.
+1. Put a Safari window **fully on the laptop**. Open the menu, pick **`1280x720`**.
+   → Window becomes 1280 × 720 pt.
+2. Move it **fully onto the external display**. Reopen the menu, pick **`1280x720`** again.
+   → Window becomes 1280 × 720 pt again — the same size, regardless of that display's scale.
 
-**Expected:** the same preset's availability and target size change purely because the display
-changed, with no setting touched. Getting the identical target size on both displays is the bug.
+**Expected:** identical point size on both. The header's `1×`/`2× display` readout should change
+to match the display, but it must not change the resulting window size.
+
+Also check a preset larger than the smaller display (e.g. `2560x1440`): it should read
+`— fills this display` on whichever screen cannot hold it, and fill that screen when picked.
 
 ⚠️ Do not leave the menu open while dragging the window between displays — see Known Issue **5**.
 
-## 7. Same preset, two displays, verified against a real screen recording (3 min — needs a second display)
+## 7. Verify a size against a real screenshot (2 min)
 
-The case that proves "relative to the active display" does what it claims: the same preset should
-capture at the *same pixel dimensions* on both displays, even though its point size differs.
-
-**7a — Laptop (2×)**
-1. Put Safari fully on the laptop display. Pick **`1280x720`**.
-2. Capture the window without its shadow, then measure:
+1. Pick **`1280x720`**. Capture the window without its shadow and measure:
 
 ```bash
-screencapture -o -w ~/Desktop/laptop.png     # click the Safari window
-sips -g pixelWidth -g pixelHeight ~/Desktop/laptop.png
+screencapture -o -w ~/Desktop/size.png     # click the Safari window
+sips -g pixelWidth -g pixelHeight ~/Desktop/size.png
 ```
 
-**Expected: `pixelWidth: 1280`, `pixelHeight: 720`.**
-The window is 640 × 360 pt (this display's 2× scale), which captures at exactly 1280 × 720 pixels
-— matching the preset name.
+**Expected on a 2× display: `pixelWidth: 2560`, `pixelHeight: 1440`.**
+A 1280 × 720 **point** window is 2560 × 1440 **pixels** at 2×. That is correct, not a bug —
+presets are points, so the pixel count doubles on a Retina panel.
 
-**7b — External display**
-1. Move Safari fully onto the external display. Pick **`1280x720`** again.
-2. Repeat the capture:
+On a 1× display the same window captures at 1280 × 720 pixels.
 
-```bash
-screencapture -o -w ~/Desktop/external.png
-sips -g pixelWidth -g pixelHeight ~/Desktop/external.png
-```
-
-**Expected: `pixelWidth: 1280`, `pixelHeight: 720`.** The same as 7a. The window's *point* size
-will differ from 7a if the external display has a different scale factor (e.g. 1280 × 720 pt at
-1×, not 640 × 360), but the captured *pixel* size must be identical on both displays.
-
-**The pass condition is that both captures give the same pixel dimensions, matching the preset.**
-If 7a and 7b disagree, the display-relative conversion is broken.
-
-**On using an actual recording:** ⌘⇧5 → *Record Selected Window* also works, and
-`mdls -name kMDItemPixelWidth -name kMDItemPixelHeight <file>` reads its dimensions — but the
-window recorder **includes the drop shadow**, so expect roughly 100–200 px of padding on each
-axis. Use it to confirm the recording looks right; use `screencapture -o` above for the exact
-number.
+**If you need capture-exact pixel dimensions** (e.g. recording a true 1920×1080 video), a point
+preset will not give it to you on a Retina display. That capability was removed along with the
+sizing-mode toggle; say so if you want it back as an option.
 
 ## 8. Permission revoked mid-session (2 min)
 
@@ -239,11 +218,11 @@ number.
 2. Settings → **Custom Sizes** → enter `1720` × `1000`.
    → Live ratio reads **`43:25`** before you click Add. After Add, a **Custom Sizes**
    section appears in the menu above Preset Sizes, containing `1720x1000 — 43:25`.
+   (Custom sizes are points too.)
    → Enter `1920` × `1080` and click Add: **`1920x1080 is already in your custom sizes.`**
 3. Settings → **Shortcuts** → record a shortcut for **Favorite 1**. Close Settings, focus Safari,
    press it.
-   → Safari's window changes to whatever point size `1280x720` pixels resolves to on its current
-   display (640 × 360 pt at 2×, per Setup).
+   → Safari's window becomes 1280 × 720 pt.
 4. Settings → **General** → **Launch at login**.
    → Running from DerivedData this is **disabled**, with text telling you to move the app to
    Applications. That is correct behaviour, not a bug.

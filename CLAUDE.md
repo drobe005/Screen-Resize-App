@@ -125,25 +125,32 @@ Distribution is:
 Do not add sandbox entitlements. Do not add App Store build configurations,
 receipt validation, or StoreKit.
 
-### 2. Points, not pixels
+### 2. Everything is points
 
 The AX API sets window size in **points**, not pixels. On a 2x Retina display,
 3840x2160 pixels equals 1920x1080 points.
 
-Every dimension in the codebase must be explicitly typed or named so points and
-pixels can never be silently confused. A bare `CGSize` or a variable named
-`width` crossing a function boundary is a bug waiting to happen.
+**Presets are point values, applied as-is.** A `1920x1080` preset produces a
+window measuring 1920x1080 points on a 1x and a 2x display alike, so it looks the
+same size to the user regardless of pixel density. The display's backing scale
+factor is deliberately not consulted when sizing.
+
+This was decided the hard way. Treating presets as physical pixels and dividing
+by the scale factor is defensible — it makes a screen recording of the window
+come out at exactly the preset's dimensions — but on a 2x display it halves the
+apparent size of every window, and a `1920x1080` pick produced a window barely
+half the screen. The surprise outweighed the precision.
 
 Rules:
-- Use distinct types for the two domains (e.g. `PointSize` and `PixelSize`), or
-  at minimum unambiguous names (`widthInPoints`, `heightInPixels`). Never a bare
+- There is **no pixel type and no pixel/point conversion anywhere**. Nothing in
+  the codebase is measured in physical pixels, so nothing needs converting. Do
+  not reintroduce one without changing this section first.
+- Names still carry the unit (`widthInPoints`, `xInPoints`). Never a bare
   `width`/`height`/`size` on any API that crosses a layer.
-- Conversion between the two happens in exactly one place, in a pure function
-  that takes the display's backing scale factor as an explicit parameter.
-- Never read a scale factor from a global or ambient source inside geometry code.
-- Presets are authored in pixels (that is how users think about resolutions) and
-  converted to points at the moment of application. Both values must be visible
-  and testable.
+- `DisplayGeometry.backingScaleFactor` exists only to *display* "2x display" in
+  the menu header. It must not influence any sizing math.
+- The two coordinate spaces (`AXPointOrigin` top-left, `AppKitPointOrigin`
+  bottom-left) remain distinct types, and that distinction is still load-bearing.
 
 ### 3. Every resize must be verified
 
@@ -170,6 +177,13 @@ the single worst bug this app can have.
 A requested resolution larger than the target display must be detected and
 handled by our own code, with an explicit decision surfaced to the user. It must
 never be left to the OS to clamp silently.
+
+Oversized presets are **not disabled** — on a 1800pt-wide display most of the
+catalog exceeds the screen, and a menu of greyed-out rows would be useless. They
+are reduced to fit and labelled `— fills this display` *before* the click, which
+is the explicit surfacing this constraint requires. A clamp that was **not**
+announced that way (because the window moved to a smaller display after the menu
+opened) still raises a banner afterwards.
 
 The geometry layer must be able to answer, before any AX write: does this
 resolution fit on this display, and if not, by how much.

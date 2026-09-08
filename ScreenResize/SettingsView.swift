@@ -95,15 +95,15 @@ private struct CustomSizesSettingsView: View {
 
     /// Parsed only when both fields are valid numbers, so the ratio label stays
     /// blank rather than flickering nonsense while typing.
-    private var pendingPixelSize: PixelSize? {
+    private var pendingPointSize: PointSize? {
         guard let width = Int(widthText), let height = Int(heightText),
               width > 0, height > 0
         else { return nil }
-        return PixelSize(widthInPixels: CGFloat(width), heightInPixels: CGFloat(height))
+        return PointSize(widthInPoints: CGFloat(width), heightInPoints: CGFloat(height))
     }
 
     private var ratioDescription: String {
-        pendingPixelSize.flatMap(WindowGeometry.aspectRatioDescription(of:)) ?? "—"
+        pendingPointSize.flatMap(WindowGeometry.aspectRatioDescription(of:)) ?? "—"
     }
 
     var body: some View {
@@ -118,7 +118,7 @@ private struct CustomSizesSettingsView: View {
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("Add", action: add)
-                    .disabled(pendingPixelSize == nil)
+                    .disabled(pendingPointSize == nil)
             }
             .textFieldStyle(.roundedBorder)
 
@@ -161,7 +161,7 @@ private struct CustomSizesSettingsView: View {
     private func add() {
         guard let width = Int(widthText), let height = Int(heightText) else { return }
         do {
-            try model.addCustomSize(widthInPixels: width, heightInPixels: height)
+            try model.addCustomSize(widthInPoints: width, heightInPoints: height)
             widthText = ""
             heightText = ""
             errorMessage = nil

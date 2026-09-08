@@ -144,7 +144,6 @@ private struct SizeSection: View {
                         Text(option.menuLabel)
                     }
                 }
-                .disabled(!option.isEnabled)
             }
         }
     }

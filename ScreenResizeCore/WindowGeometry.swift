@@ -24,24 +24,17 @@ public enum WindowGeometry {
     /// This is the one place where a preset's authored pixel numbers become
     /// points, and the scale factor is an explicit parameter rather than
     /// something read from ambient state. See CLAUDE.md, hard constraint 2.
-    public static func targetPointSize(
-        for resolution: Resolution, backingScaleFactor: CGFloat
-    ) -> PointSize {
-        precondition(
-            backingScaleFactor > 0,
-            "backingScaleFactor must be positive, got \(backingScaleFactor)"
-        )
-        // The only interpretation: a preset's numbers are physical pixels, and
-        // dividing by the display's own scale factor is what makes the result
-        // relative to whichever display it is applied on. A screen recording of
-        // the resulting window is then exactly the preset's pixel dimensions —
-        // 3840x2160 on a 2x display becomes a 1920x1080 point window that
-        // captures at 3840x2160 pixels; the same preset on a 1x display stays
-        // 3840x2160 points. See CLAUDE.md, hard constraint 2.
-        return PointSize(
-            widthInPoints: resolution.pixelSize.widthInPixels / backingScaleFactor,
-            heightInPoints: resolution.pixelSize.heightInPixels / backingScaleFactor
-        )
+    public static func targetPointSize(for resolution: Resolution) -> PointSize {
+        // A preset's numbers ARE points, applied as-is. The display's backing
+        // scale factor is deliberately not consulted: a 1920x1080 preset gives a
+        // window that measures 1920x1080 points on a 1x and a 2x display alike,
+        // so it looks the same size to the user regardless of pixel density.
+        //
+        // The alternative — treating the numbers as physical pixels and dividing
+        // by the scale factor — makes windows half the apparent size on a Retina
+        // display, which surprised more than it helped. See CLAUDE.md,
+        // hard constraint 2.
+        resolution.pointSize
     }
 
     // MARK: - Fitting
@@ -278,9 +271,9 @@ public enum WindowGeometry {
     /// This computes the *real* ratio, which is frequently not the one a display
     /// is marketed as: 2560x1080 reduces to 64:27 and 3440x1440 to 43:18, neither
     /// of which is the 21:9 they are sold as. Used to label custom sizes.
-    public static func aspectRatio(of size: PixelSize) -> (widthTerm: Int, heightTerm: Int)? {
-        let width = Int(size.widthInPixels.rounded())
-        let height = Int(size.heightInPixels.rounded())
+    public static func aspectRatio(of size: PointSize) -> (widthTerm: Int, heightTerm: Int)? {
+        let width = Int(size.widthInPoints.rounded())
+        let height = Int(size.heightInPoints.rounded())
         guard width > 0, height > 0 else { return nil }
 
         let divisor = greatestCommonDivisor(width, height)
@@ -288,7 +281,7 @@ public enum WindowGeometry {
     }
 
     /// Formatted for display, e.g. "64:27". Nil for a non-positive size.
-    public static func aspectRatioDescription(of size: PixelSize) -> String? {
+    public static func aspectRatioDescription(of size: PointSize) -> String? {
         guard let ratio = aspectRatio(of: size) else { return nil }
         return "\(ratio.widthTerm):\(ratio.heightTerm)"
     }

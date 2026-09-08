@@ -8,15 +8,15 @@ public struct Resolution: Equatable, Identifiable, Sendable {
     /// Stable identity and display name, e.g. "1920x1080".
     public let name: String
     /// The authored size, in physical pixels.
-    public let pixelSize: PixelSize
+    public let pointSize: PointSize
     /// An optional friendly label, e.g. "1080p / Full HD".
     public let label: String?
 
     public var id: String { name }
 
-    public init(name: String, pixelSize: PixelSize, label: String? = nil) {
+    public init(name: String, pointSize: PointSize, label: String? = nil) {
         self.name = name
-        self.pixelSize = pixelSize
+        self.pointSize = pointSize
         self.label = label
     }
 }

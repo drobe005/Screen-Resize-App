@@ -43,13 +43,21 @@ public struct WindowSnapshot: Equatable {
 
 /// One row in an aspect-ratio submenu, fully resolved.
 ///
-/// The view renders `menuLabel` and reads `isEnabled`. It never computes fit and
+/// The view renders `menuLabel`. It never computes fit and
 /// never formats a resolution, which is what keeps resolution literals out of the
 /// UI layer entirely.
 public struct ResolutionOption: Identifiable, Equatable {
     public let resolution: Resolution
+
+    /// The size that will actually be applied — already reduced to fit the
+    /// display, so it is what the window will become, not merely what was asked.
     public let targetSizeInPoints: PointSize
-    public let isEnabled: Bool
+
+    /// True when the preset is larger than the display and will therefore fill
+    /// it rather than reach its nominal size. Nothing is disabled: an oversized
+    /// preset still works, it just cannot exceed the screen.
+    public let exceedsDisplay: Bool
+
     public let menuLabel: String
 
     public var id: String { resolution.id }
@@ -250,16 +258,16 @@ public final class MenuBarModel: ObservableObject {
     ///
     /// - Throws: `CustomSizeError`. Refusals are surfaced, never silently
     ///   clamped into something the user did not ask for.
-    public func addCustomSize(widthInPixels: Int, heightInPixels: Int) throws {
-        guard widthInPixels > 0, heightInPixels > 0 else {
+    public func addCustomSize(widthInPoints: Int, heightInPoints: Int) throws {
+        guard widthInPoints > 0, heightInPoints > 0 else {
             throw CustomSizeError.notPositive
         }
-        let maximum = CustomSizeLimits.maximumInPixels
-        guard widthInPixels <= maximum, heightInPixels <= maximum else {
-            throw CustomSizeError.tooLarge(maximumInPixels: maximum)
+        let maximum = CustomSizeLimits.maximumInPoints
+        guard widthInPoints <= maximum, heightInPoints <= maximum else {
+            throw CustomSizeError.tooLarge(maximumInPoints: maximum)
         }
 
-        let candidate = CustomSize(widthInPixels: widthInPixels, heightInPixels: heightInPixels)
+        let candidate = CustomSize(widthInPoints: widthInPoints, heightInPoints: heightInPoints)
         guard !allResolutions.contains(where: { $0.id == candidate.id }) else {
             throw CustomSizeError.duplicate(name: candidate.id)
         }
@@ -297,24 +305,27 @@ public final class MenuBarModel: ObservableObject {
     private func makeOption(for resolution: Resolution) -> ResolutionOption? {
         guard let display = currentDisplay else { return nil }
 
-        let target = WindowGeometry.targetPointSize(
-            for: resolution,
-            backingScaleFactor: display.backingScaleFactor
-        )
-        let fits = WindowGeometry.fits(target, in: display)
+        let requested = WindowGeometry.targetPointSize(for: resolution)
+        let fitted = WindowGeometry.sizeThatFits(requested, in: display)
+        let exceedsDisplay = fitted != requested
 
         // Built here, from resolution.name, never from digits in a view.
+        // An oversized preset says so up front rather than being greyed out:
+        // on a 1800pt-wide display most of the catalog exceeds the screen, and a
+        // menu of disabled rows would be useless. See CLAUDE.md constraint 4 —
+        // the oversize is surfaced, it is simply surfaced before the click
+        // instead of after it.
         let label: String
-        if fits {
-            label = resolution.label.map { "\(resolution.name) — \($0)" } ?? resolution.name
+        if exceedsDisplay {
+            label = "\(resolution.name) — fills this display"
         } else {
-            label = "\(resolution.name) — too large for this display"
+            label = resolution.label.map { "\(resolution.name) — \($0)" } ?? resolution.name
         }
 
         return ResolutionOption(
             resolution: resolution,
-            targetSizeInPoints: target,
-            isEnabled: fits,
+            targetSizeInPoints: fitted,
+            exceedsDisplay: exceedsDisplay,
             menuLabel: label
         )
     }
@@ -323,8 +334,6 @@ public final class MenuBarModel: ObservableObject {
 
     /// Resizes and re-centres the target window on the display it occupies.
     public func apply(_ option: ResolutionOption) {
-        guard option.isEnabled else { return }
-
         var applicationName = "That application"
         do {
             let application = try targetApplication()
@@ -340,9 +349,7 @@ public final class MenuBarModel: ObservableObject {
                 return
             }
 
-            let requestedSize = WindowGeometry.targetPointSize(
-                for: option.resolution, backingScaleFactor: display.backingScaleFactor
-            )
+            let requestedSize = WindowGeometry.targetPointSize(for: option.resolution)
 
             // Fit the SIZE first, then centre for whatever size survived.
             // Centring for the requested size and clamping afterwards leaves the
@@ -354,10 +361,15 @@ public final class MenuBarModel: ObservableObject {
                 PointFrame(origin: origin, size: fittedSize), to: display
             )
 
-            // Never absorb a shrink silently. CLAUDE.md constraint 4.
-            var note: String? = fittedSize == requestedSize
-                ? nil
-                : "Shrunk to \(Self.describe(fittedSize)) to fit this display."
+            // Never absorb a shrink silently — CLAUDE.md constraint 4 — but do
+            // not nag about one the menu already announced. `exceedsDisplay`
+            // means the row said "fills this display" before it was clicked; a
+            // clamp that was NOT announced means the display changed since the
+            // menu opened, and that is worth a banner.
+            var note: String?
+            if fittedSize != requestedSize, !option.exceedsDisplay {
+                note = "Shrunk to \(Self.describe(fittedSize)) to fit this display."
+            }
             if note == nil, adjustment == .resized || adjustment == .movedAndResized {
                 note = "Adjusted to \(Self.describe(target.size)) to fit this display."
             }
@@ -452,12 +464,7 @@ public final class MenuBarModel: ObservableObject {
             return
         }
 
-        let option = options[slot]
-        guard option.isEnabled else {
-            failureMessage = option.menuLabel
-            return
-        }
-        apply(option)
+        apply(options[slot])
     }
 
     /// Opens System Settings at Privacy & Security → Accessibility.

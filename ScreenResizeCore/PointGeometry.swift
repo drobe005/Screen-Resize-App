@@ -20,6 +20,10 @@ import CoreGraphics
 //
 // PointSize is deliberately shared: a size is the same number in either space.
 // Only origins differ.
+//
+// There is no pixel type. Presets are point values applied as-is, so nothing in
+// the codebase is measured in physical pixels and a PixelSize would only invite
+// someone to reintroduce a conversion that no longer exists.
 
 /// A window size expressed in points.
 public struct PointSize: Equatable, Sendable {
@@ -88,23 +92,6 @@ extension PointFrame {
     }
 }
 
-
-// MARK: - Pixels
-
-/// A size in physical pixels.
-///
-/// Resolution presets are authored in pixels because that is how users think
-/// about resolutions. Converting to points is the job of `WindowGeometry`, and
-/// happens in exactly one place. See CLAUDE.md, hard constraint 2.
-public struct PixelSize: Equatable, Sendable {
-    public var widthInPixels: CGFloat
-    public var heightInPixels: CGFloat
-
-    public init(widthInPixels: CGFloat, heightInPixels: CGFloat) {
-        self.widthInPixels = widthInPixels
-        self.heightInPixels = heightInPixels
-    }
-}
 
 // MARK: - AppKit coordinate space
 

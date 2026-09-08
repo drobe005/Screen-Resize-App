@@ -36,7 +36,7 @@ final class CustomSizeTests: XCTestCase {
 
     private func ratio(_ w: CGFloat, _ h: CGFloat) -> String? {
         WindowGeometry.aspectRatioDescription(
-            of: PixelSize(widthInPixels: w, heightInPixels: h))
+            of: PointSize(widthInPoints: w, heightInPoints: h))
     }
 
     // MARK: - Aspect ratio reduction
@@ -71,7 +71,7 @@ final class CustomSizeTests: XCTestCase {
     // MARK: - Adding and validating
 
     func testM6_addingACustomSizeMakesItAvailableAsAGroup() throws {
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)
+        try model.addCustomSize(widthInPoints: 1720, heightInPoints: 1080)
 
         let options = model.customOptions()
         XCTAssertEqual(options.map(\.resolution.name), ["1720x1080"])
@@ -79,47 +79,46 @@ final class CustomSizeTests: XCTestCase {
     }
 
     func testM7_customSizesBehaveExactlyLikeBuiltInPresets() throws {
-        // Custom sizes are authored in pixels like every other preset, and this
-        // fixture's display is 2x. The middle case is the one worth pinning
-        // down: 2160 PIXELS tall becomes 1080 POINTS at 2x, which does NOT fit —
-        // the visible frame is 1075 pt tall because the menu bar and Dock take
-        // 125 pt off a 1200 pt display. 2000 pixels tall (1000 pt) just fits.
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 2000)
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 2160)
-        try model.addCustomSize(widthInPixels: 9000, heightInPixels: 9000)
+        // Custom sizes are points, like every preset. The middle case is the one
+        // worth pinning: 1080 is the obvious height and it misses the 1075pt
+        // visible frame by five points, because the menu bar and Dock take 125pt
+        // off a 1200pt display.
+        try model.addCustomSize(widthInPoints: 1720, heightInPoints: 1000)
+        try model.addCustomSize(widthInPoints: 1720, heightInPoints: 1080)
+        try model.addCustomSize(widthInPoints: 9000, heightInPoints: 9000)
 
         let options = model.customOptions()
 
-        XCTAssertTrue(options[0].isEnabled, "2000 px tall is 1000 pt at 2x, fits a 1075 pt frame")
-        XCTAssertFalse(options[1].isEnabled, "2160 px tall is 1080 pt at 2x, exceeds a 1075 pt frame")
-        XCTAssertEqual(options[1].menuLabel, "1720x2160 — too large for this display")
-        XCTAssertFalse(options[2].isEnabled)
-        XCTAssertEqual(options[2].menuLabel, "9000x9000 — too large for this display")
+        XCTAssertFalse(options[0].exceedsDisplay, "1000pt tall fits a 1075pt frame")
+        XCTAssertTrue(options[1].exceedsDisplay, "1080pt tall exceeds a 1075pt frame by 5")
+        XCTAssertEqual(options[1].menuLabel, "1720x1080 — fills this display")
+        XCTAssertTrue(options[2].exceedsDisplay)
+        XCTAssertEqual(options[2].menuLabel, "9000x9000 — fills this display")
     }
 
     func testM8_nonPositiveDimensionsAreRefused() {
-        XCTAssertThrowsError(try model.addCustomSize(widthInPixels: 0, heightInPixels: 1080)) {
+        XCTAssertThrowsError(try model.addCustomSize(widthInPoints: 0, heightInPoints: 1080)) {
             XCTAssertEqual($0 as? CustomSizeError, .notPositive)
         }
     }
 
     func testM9_absurdDimensionsAreRefusedRatherThanClamped() {
-        let maximum = CustomSizeLimits.maximumInPixels
+        let maximum = CustomSizeLimits.maximumInPoints
         XCTAssertThrowsError(
-            try model.addCustomSize(widthInPixels: maximum + 1, heightInPixels: 1080)
+            try model.addCustomSize(widthInPoints: maximum + 1, heightInPoints: 1080)
         ) {
-            XCTAssertEqual($0 as? CustomSizeError, .tooLarge(maximumInPixels: maximum))
+            XCTAssertEqual($0 as? CustomSizeError, .tooLarge(maximumInPoints: maximum))
         }
         XCTAssertTrue(model.customSizes.isEmpty, "A refused size must not be stored")
     }
 
     func testM10_duplicatesAreRefusedIncludingAgainstBuiltInPresets() throws {
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)
-        XCTAssertThrowsError(try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)) {
+        try model.addCustomSize(widthInPoints: 1720, heightInPoints: 1080)
+        XCTAssertThrowsError(try model.addCustomSize(widthInPoints: 1720, heightInPoints: 1080)) {
             XCTAssertEqual($0 as? CustomSizeError, .duplicate(name: "1720x1080"))
         }
         // 1920x1080 already exists in the shipped catalog.
-        XCTAssertThrowsError(try model.addCustomSize(widthInPixels: 1920, heightInPixels: 1080)) {
+        XCTAssertThrowsError(try model.addCustomSize(widthInPoints: 1920, heightInPoints: 1080)) {
             XCTAssertEqual($0 as? CustomSizeError, .duplicate(name: "1920x1080"))
         }
     }
@@ -127,12 +126,12 @@ final class CustomSizeTests: XCTestCase {
     // MARK: - Persistence and interaction with favorites
 
     func testM11_customSizesPersistAcrossModelInstances() throws {
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)
+        try model.addCustomSize(widthInPoints: 1720, heightInPoints: 1080)
         XCTAssertEqual(makeModel().customSizes.map(\.id), ["1720x1080"])
     }
 
     func testM12_aCustomSizeCanBeStarred() throws {
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)
+        try model.addCustomSize(widthInPoints: 1720, heightInPoints: 1080)
         let custom = try XCTUnwrap(model.customSizes.first?.resolution)
 
         model.toggleFavorite(custom)
@@ -142,7 +141,7 @@ final class CustomSizeTests: XCTestCase {
     }
 
     func testM13_removingAStarredCustomSizeAlsoUnstarsIt() throws {
-        try model.addCustomSize(widthInPixels: 1720, heightInPixels: 1080)
+        try model.addCustomSize(widthInPoints: 1720, heightInPoints: 1080)
         let size = try XCTUnwrap(model.customSizes.first)
         model.toggleFavorite(size.resolution)
         XCTAssertEqual(model.favoriteResolutionIDs, ["1720x1080"])

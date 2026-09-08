@@ -80,9 +80,9 @@ final class FavoritesTests: XCTestCase {
 
         let options = model.favoriteOptions()
         XCTAssertEqual(options.count, 2)
-        XCTAssertTrue(options[0].isEnabled)
-        XCTAssertFalse(options[1].isEnabled)
-        XCTAssertEqual(options[1].menuLabel, "7680x4320 — too large for this display")
+        XCTAssertFalse(options[0].exceedsDisplay)
+        XCTAssertTrue(options[1].exceedsDisplay)
+        XCTAssertEqual(options[1].menuLabel, "7680x4320 — fills this display")
     }
 
     func testL7_unknownFavoriteIDIsSkippedNotSurfacedAsABrokenRow() {

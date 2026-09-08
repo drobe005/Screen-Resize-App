@@ -16,7 +16,7 @@ final class ResolutionCatalogTests: XCTestCase {
             (1024, 768), (640, 480),
         ]
         let actual = all.map {
-            (Int($0.pixelSize.widthInPixels), Int($0.pixelSize.heightInPixels))
+            (Int($0.pointSize.widthInPoints), Int($0.pointSize.heightInPoints))
         }
         XCTAssertEqual(actual.count, expected.count)
         for (a, e) in zip(actual, expected) {
@@ -29,7 +29,7 @@ final class ResolutionCatalogTests: XCTestCase {
     // grouping and no sorting of its own.
     func testCatalogIsSortedLargestFirst() {
         let dimensions = all.map {
-            ($0.pixelSize.widthInPixels, $0.pixelSize.heightInPixels)
+            ($0.pointSize.widthInPoints, $0.pointSize.heightInPoints)
         }
         for (previous, next) in zip(dimensions, dimensions.dropFirst()) {
             XCTAssertTrue(
@@ -42,8 +42,8 @@ final class ResolutionCatalogTests: XCTestCase {
     // A3
     func testEveryResolutionHasPositiveDimensions() {
         for resolution in all {
-            XCTAssertGreaterThan(resolution.pixelSize.widthInPixels, 0, resolution.name)
-            XCTAssertGreaterThan(resolution.pixelSize.heightInPixels, 0, resolution.name)
+            XCTAssertGreaterThan(resolution.pointSize.widthInPoints, 0, resolution.name)
+            XCTAssertGreaterThan(resolution.pointSize.heightInPoints, 0, resolution.name)
         }
     }
 
@@ -53,8 +53,8 @@ final class ResolutionCatalogTests: XCTestCase {
         XCTAssertEqual(Set(names).count, names.count, "names double as persisted IDs")
 
         for resolution in all {
-            let expected = "\(Int(resolution.pixelSize.widthInPixels))"
-                + "x\(Int(resolution.pixelSize.heightInPixels))"
+            let expected = "\(Int(resolution.pointSize.widthInPoints))"
+                + "x\(Int(resolution.pointSize.heightInPoints))"
             XCTAssertEqual(resolution.name, expected)
         }
     }
@@ -65,15 +65,15 @@ final class ResolutionCatalogTests: XCTestCase {
         let nominal: CGFloat = 21.0 / 9.0
         for name in ["2560x1080", "3440x1440"] {
             let resolution = all.first { $0.name == name }!
-            let ratio = resolution.pixelSize.widthInPixels / resolution.pixelSize.heightInPixels
+            let ratio = resolution.pointSize.widthInPoints / resolution.pointSize.heightInPoints
             XCTAssertGreaterThan(abs(ratio - nominal), 0.01,
                                  "\(name) is not 21:9 and must not be treated as such")
         }
         XCTAssertEqual(
             WindowGeometry.aspectRatioDescription(
-                of: all.first { $0.name == "2560x1080" }!.pixelSize), "64:27")
+                of: all.first { $0.name == "2560x1080" }!.pointSize), "64:27")
         XCTAssertEqual(
             WindowGeometry.aspectRatioDescription(
-                of: all.first { $0.name == "3440x1440" }!.pixelSize), "43:18")
+                of: all.first { $0.name == "3440x1440" }!.pointSize), "43:18")
     }
 }

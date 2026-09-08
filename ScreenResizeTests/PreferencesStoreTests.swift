@@ -43,7 +43,7 @@ final class PreferencesStoreTests: XCTestCase {
     }
 
     func testK5_customSizesRoundTrip() {
-        let size = CustomSize(widthInPixels: 1720, heightInPixels: 1000)
+        let size = CustomSize(widthInPoints: 1720, heightInPoints: 1000)
         store.customSizes = [size]
         XCTAssertEqual(store.customSizes, [size])
     }

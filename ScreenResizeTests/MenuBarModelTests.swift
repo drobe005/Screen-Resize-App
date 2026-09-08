@@ -83,7 +83,7 @@ final class MenuBarModelTests: XCTestCase {
     func testI7_refreshClearsAStaleFailure() {
         windowManager.applyBehavior = .refuse
         model.refresh()
-        model.apply(enabledOption(named: "1280x720"))
+        model.apply(option(named: "1280x720"))
         XCTAssertNotNil(model.failureMessage)
 
         model.refresh()
@@ -92,55 +92,60 @@ final class MenuBarModelTests: XCTestCase {
 
     // MARK: - Fit
 
-    func testI8_oversizedPresetIsDisabledAndSaysWhy() {
+    func testI8_oversizedPresetSaysItWillFillTheDisplay() {
         model.refresh()
         let option = option(named: "7680x4320")
-        XCTAssertFalse(option.isEnabled)
-        XCTAssertEqual(option.menuLabel, "7680x4320 — too large for this display")
+        XCTAssertTrue(option.exceedsDisplay)
+        XCTAssertEqual(option.menuLabel, "7680x4320 — fills this display")
+        // The row still works; it just cannot exceed the screen.
+        XCTAssertEqual(option.targetSizeInPoints,
+                       PointSize(widthInPoints: 2000, heightInPoints: 1075))
     }
 
     func testI9_fittingPresetIsEnabledAndShowsItsFriendlyLabel() {
         model.refresh()
         let option = option(named: "1280x720")
-        XCTAssertTrue(option.isEnabled)
+        XCTAssertFalse(option.exceedsDisplay)
         XCTAssertEqual(option.menuLabel, "1280x720 — 720p / HD")
     }
 
-    func testI10_fitIsRelativeToTheActiveDisplayNotAbsolute() {
-        // The whole point of dropping the mode picker: sizing is always relative
-        // to the display's own scale factor, and this is what "relative" means in
-        // practice. 2560x1440 pixels is 2560x1440 points on a 1x display (does not
-        // fit a 2000pt-wide visible frame) but 1280x720 points on a 2x display
-        // (fits easily). Same preset, different displays, different outcome.
+    func testI10_aPresetIsTheSamePointSizeOnEveryDisplay() {
+        // Presets are points, applied as-is. The backing scale factor is not
+        // consulted, so the same preset yields the same on-screen size on a 1x
+        // and a 2x display alike.
         model.refresh()
-        let onPrimary2x = option(named: "2560x1440")
-        XCTAssertTrue(onPrimary2x.isEnabled, "At 2x, 2560x1440 pixels is 1280x720 points, which fits")
-        XCTAssertEqual(onPrimary2x.targetSizeInPoints,
-                       PointSize(widthInPoints: 1280, heightInPoints: 720))
+        let onTwoX = option(named: "1280x720").targetSizeInPoints
+
+        screens.configuredDisplays = [Fixtures.secondary]      // 1600x975 @1x
+        windowManager.storedFrame = Fixtures.frame(-1000, -500, 400, 300)
+        model.refresh()
+        let onOneX = option(named: "1280x720").targetSizeInPoints
+
+        XCTAssertEqual(onTwoX, PointSize(widthInPoints: 1280, heightInPoints: 720))
+        XCTAssertEqual(onOneX, onTwoX, "Scale factor must not change a preset's point size")
     }
 
-    func testI10b_dockAndMenuBarCanStillDefeatAPreset() {
-        // Worth pinning down: 3840x2160 at 2x is 1920x1080 POINTS, and 1920 fits
-        // the 2000 pt width -- but 1080 exceeds the 1075 pt visible HEIGHT, because
-        // the menu bar and Dock take 125 pt off a 1200 pt display. Halving by the
-        // scale factor is not a guarantee that a preset fits.
+    func testI10b_aFivePointOverflowStillCountsAsExceeding() {
+        // The trap that has caught me repeatedly: 1080 is the obvious height and
+        // it does NOT fit, because the menu bar and Dock take 125pt off a 1200pt
+        // display, leaving 1075. Five points short.
         model.refresh()
 
-        let option = option(named: "3840x2160")
+        let option = option(named: "1920x1080")
+        XCTAssertTrue(option.exceedsDisplay, "1080pt exceeds a 1075pt visible frame")
+        XCTAssertEqual(option.menuLabel, "1920x1080 — fills this display")
         XCTAssertEqual(option.targetSizeInPoints,
-                       PointSize(widthInPoints: 1920, heightInPoints: 1080))
-        XCTAssertFalse(option.isEnabled, "1080 pt tall does not fit a 1075 pt visible frame")
-        XCTAssertEqual(option.menuLabel, "3840x2160 — too large for this display")
+                       PointSize(widthInPoints: 1920, heightInPoints: 1075),
+                       "Only the overflowing dimension is reduced")
     }
 
     // MARK: - Apply
 
     func testI12_applyResizesAndRecentersOnTheCurrentDisplay() {
         model.refresh()
-        model.apply(enabledOption(named: "1280x720"))
+        model.apply(option(named: "1280x720"))
 
-        // 1280x720 PIXELS at this fixture's 2x scale is 640x360 POINTS.
-        let expectedSize = PointSize(widthInPoints: 640, heightInPoints: 360)
+        let expectedSize = PointSize(widthInPoints: 1280, heightInPoints: 720)
         let expectedOrigin = WindowGeometry.centeredOriginInAXSpace(
             for: expectedSize, in: Fixtures.primary)
 
@@ -154,7 +159,7 @@ final class MenuBarModelTests: XCTestCase {
     func testI13_rejectedResizeNamesTheApplicationThatRefused() {
         windowManager.applyBehavior = .refuse
         model.refresh()
-        model.apply(enabledOption(named: "1280x720"))
+        model.apply(option(named: "1280x720"))
 
         let message = model.failureMessage ?? ""
         XCTAssertTrue(message.contains("Safari"), "Failure must name the app: \(message)")
@@ -165,26 +170,30 @@ final class MenuBarModelTests: XCTestCase {
         windowManager.applyBehavior = .clamp(
             to: PointSize(widthInPoints: 1000, heightInPoints: 700))
         model.refresh()
-        model.apply(enabledOption(named: "1280x720"))
+        model.apply(option(named: "1280x720"))
 
         let message = model.failureMessage ?? ""
         XCTAssertTrue(message.contains("1000 × 700 pt"), message)
-        XCTAssertTrue(message.contains("640 × 360 pt"), message)   // 1280x720 px at 2x
+        XCTAssertTrue(message.contains("1280 × 720 pt"), message)
     }
 
-    func testI15_applyingADisabledOptionDoesNothing() {
+    func testI15_applyingAnOversizedPresetFillsTheDisplay() {
         model.refresh()
         model.apply(option(named: "7680x4320"))
-        XCTAssertTrue(windowManager.appliedFrames.isEmpty, "A disabled option must not be applied")
+
+        XCTAssertEqual(windowManager.appliedFrames.count, 1, "Oversized presets still apply")
+        XCTAssertEqual(windowManager.appliedFrames[0].size,
+                       PointSize(widthInPoints: 2000, heightInPoints: 1075))
+        XCTAssertNil(model.failureMessage,
+                     "The row already said it would fill the display; do not warn twice")
     }
 
     func testI16_headerReflectsTheNewSizeAfterApplying() {
         model.refresh()
-        model.apply(enabledOption(named: "1280x720"))
+        model.apply(option(named: "1280x720"))
 
         guard case .ready(let snapshot) = model.state else { return XCTFail("Expected .ready") }
-        // 1280x720 PIXELS at this fixture's 2x scale is 640x360 POINTS.
-        XCTAssertEqual(snapshot.currentSizeDescription, "640 × 360 pt")
+        XCTAssertEqual(snapshot.currentSizeDescription, "1280 × 720 pt")
     }
 
     func testI17_applyTargetsTheTrackedAppNotWhateverIsFrontmost() {
@@ -220,7 +229,7 @@ final class MenuBarModelTests: XCTestCase {
         screens.configuredDisplays = [hugeDisplay]
         model.refresh()
         let option = option(named: "7680x4320")
-        XCTAssertTrue(option.isEnabled, "precondition: enabled against the huge display")
+        XCTAssertFalse(option.exceedsDisplay, "precondition: fits the huge display")
 
         screens.configuredDisplays = [Fixtures.primary]
         model.apply(option)
@@ -262,7 +271,7 @@ final class MenuBarModelTests: XCTestCase {
         windowManager.applyBehavior = .clamp(to: stubborn)
         model.refresh()
 
-        model.apply(enabledOption(named: "1280x720"))
+        model.apply(option(named: "1280x720"))
 
         XCTAssertEqual(windowManager.appliedFrames.count, 2,
                        "Expected a second write re-centring the window")
@@ -278,16 +287,16 @@ final class MenuBarModelTests: XCTestCase {
         windowManager.applyBehavior = .clamp(
             to: PointSize(widthInPoints: 1000, heightInPoints: 700))
         model.refresh()
-        model.apply(enabledOption(named: "1280x720"))
+        model.apply(option(named: "1280x720"))
 
         let message = model.failureMessage ?? ""
         XCTAssertTrue(message.contains("1000 × 700 pt"), message)
-        XCTAssertTrue(message.contains("640 × 360 pt"), message)
+        XCTAssertTrue(message.contains("1280 × 720 pt"), message)
     }
 
     func testQ5_anExactResizeReportsNothing() {
         model.refresh()
-        model.apply(enabledOption(named: "1280x720"))
+        model.apply(option(named: "1280x720"))
 
         XCTAssertNil(model.failureMessage)
         XCTAssertEqual(windowManager.appliedFrames.count, 1, "No recovery write when exact")
@@ -303,9 +312,4 @@ final class MenuBarModelTests: XCTestCase {
         return match
     }
 
-    private func enabledOption(named name: String) -> ResolutionOption {
-        let option = option(named: name)
-        XCTAssertTrue(option.isEnabled, "\(name) should be enabled for this test")
-        return option
-    }
 }

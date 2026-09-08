@@ -33,7 +33,7 @@ final class WindowGeometryTests: XCTestCase {
     private func resolution(_ w: CGFloat, _ h: CGFloat) -> Resolution {
         Resolution(
             name: "\(Int(w))x\(Int(h))",
-            pixelSize: PixelSize(widthInPixels: w, heightInPixels: h),
+            pointSize: PointSize(widthInPoints: w, heightInPoints: h),
             label: nil
         )
     }
@@ -49,48 +49,24 @@ final class WindowGeometryTests: XCTestCase {
 
     // MARK: - B. targetPointSize
     //
-    // There is exactly one interpretation: a preset's numbers are physical
-    // pixels, divided by the target display's own scale factor. This makes the
-    // result relative to whichever display it is applied on — the same preset
-    // yields a different point size (and thus a different on-screen pixel
-    // footprint match) on a 1x display than on a 2x one. That is the point.
+    // A preset's numbers ARE points, applied as-is. There is no pixel/point
+    // conversion and no scale factor involved, so a preset means the same
+    // on-screen size on every display.
 
-    func testB1_at1xPointsEqualPixels() {
-        assertSize(WindowGeometry.targetPointSize(
-            for: resolution(1920, 1080), backingScaleFactor: 1.0), 1920, 1080)
+    func testB1_presetNumbersAreUsedAsPointsDirectly() {
+        assertSize(WindowGeometry.targetPointSize(for: resolution(1920, 1080)), 1920, 1080)
     }
 
-    func testB2_at2xHalvesTheSize() {
-        assertSize(WindowGeometry.targetPointSize(
-            for: resolution(1920, 1080), backingScaleFactor: 2.0), 960, 540)
+    func testB2_theSmallestAndLargestPresetsPassThroughUnchanged() {
+        assertSize(WindowGeometry.targetPointSize(for: resolution(640, 480)), 640, 480)
+        assertSize(WindowGeometry.targetPointSize(for: resolution(7680, 4320)), 7680, 4320)
     }
 
-    func testB3_at2xMatchesTheClaudeMdWorkedExample() {
-        // 3840x2160 pixels == 1920x1080 points on a 2x display.
-        assertSize(WindowGeometry.targetPointSize(
-            for: resolution(3840, 2160), backingScaleFactor: 2.0), 1920, 1080)
-    }
-
-    func testB4_at2xOfEightK() {
-        assertSize(WindowGeometry.targetPointSize(
-            for: resolution(7680, 4320), backingScaleFactor: 2.0), 3840, 2160)
-    }
-
-    func testB5_atFractionalScaleKeepsFractionalPoints() {
-        // 1024/1.5 = 682.666..., must not be rounded away.
-        assertSize(WindowGeometry.targetPointSize(
-            for: resolution(1024, 768), backingScaleFactor: 1.5), 1024.0 / 1.5, 512)
-    }
-
-    func testB6_sameResolutionYieldsDifferentPointSizesOnDifferentDisplays() {
-        // This is the whole feature: relative to the active display.
+    func testB3_targetIsIndependentOfAnyDisplay() {
+        // Nothing about the display can change it — that is the whole contract.
         let r = resolution(2560, 1440)
-        let at1x = WindowGeometry.targetPointSize(for: r, backingScaleFactor: 1.0)
-        let at2x = WindowGeometry.targetPointSize(for: r, backingScaleFactor: 2.0)
-
-        assertSize(at1x, 2560, 1440)
-        assertSize(at2x, 1280, 720)
-        XCTAssertNotEqual(at1x, at2x)
+        XCTAssertEqual(WindowGeometry.targetPointSize(for: r),
+                       PointSize(widthInPoints: 2560, heightInPoints: 1440))
     }
 
     // MARK: - C. fits

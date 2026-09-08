@@ -12,19 +12,19 @@ import CoreGraphics
 public enum ResolutionCatalog {
 
     public static let all: [Resolution] = [
-        Resolution(name: "7680x4320", pixelSize: PixelSize(widthInPixels: 7680, heightInPixels: 4320), label: "8K UHD"),
-        Resolution(name: "3840x2160", pixelSize: PixelSize(widthInPixels: 3840, heightInPixels: 2160), label: "4K UHD"),
-        Resolution(name: "3440x1440", pixelSize: PixelSize(widthInPixels: 3440, heightInPixels: 1440), label: "UW-QHD"),
-        Resolution(name: "3000x2000", pixelSize: PixelSize(widthInPixels: 3000, heightInPixels: 2000)),
-        Resolution(name: "2560x1600", pixelSize: PixelSize(widthInPixels: 2560, heightInPixels: 1600), label: "WQXGA"),
-        Resolution(name: "2560x1440", pixelSize: PixelSize(widthInPixels: 2560, heightInPixels: 1440), label: "1440p / QHD"),
-        Resolution(name: "2560x1080", pixelSize: PixelSize(widthInPixels: 2560, heightInPixels: 1080), label: "UW-FHD"),
-        Resolution(name: "2160x1440", pixelSize: PixelSize(widthInPixels: 2160, heightInPixels: 1440)),
-        Resolution(name: "1920x1200", pixelSize: PixelSize(widthInPixels: 1920, heightInPixels: 1200), label: "WUXGA"),
-        Resolution(name: "1920x1080", pixelSize: PixelSize(widthInPixels: 1920, heightInPixels: 1080), label: "1080p / Full HD"),
-        Resolution(name: "1600x1200", pixelSize: PixelSize(widthInPixels: 1600, heightInPixels: 1200), label: "UXGA"),
-        Resolution(name: "1280x720",  pixelSize: PixelSize(widthInPixels: 1280, heightInPixels: 720),  label: "720p / HD"),
-        Resolution(name: "1024x768",  pixelSize: PixelSize(widthInPixels: 1024, heightInPixels: 768),  label: "XGA"),
-        Resolution(name: "640x480",   pixelSize: PixelSize(widthInPixels: 640,  heightInPixels: 480),  label: "VGA"),
+        Resolution(name: "7680x4320", pointSize: PointSize(widthInPoints: 7680, heightInPoints: 4320), label: "8K UHD"),
+        Resolution(name: "3840x2160", pointSize: PointSize(widthInPoints: 3840, heightInPoints: 2160), label: "4K UHD"),
+        Resolution(name: "3440x1440", pointSize: PointSize(widthInPoints: 3440, heightInPoints: 1440), label: "UW-QHD"),
+        Resolution(name: "3000x2000", pointSize: PointSize(widthInPoints: 3000, heightInPoints: 2000)),
+        Resolution(name: "2560x1600", pointSize: PointSize(widthInPoints: 2560, heightInPoints: 1600), label: "WQXGA"),
+        Resolution(name: "2560x1440", pointSize: PointSize(widthInPoints: 2560, heightInPoints: 1440), label: "1440p / QHD"),
+        Resolution(name: "2560x1080", pointSize: PointSize(widthInPoints: 2560, heightInPoints: 1080), label: "UW-FHD"),
+        Resolution(name: "2160x1440", pointSize: PointSize(widthInPoints: 2160, heightInPoints: 1440)),
+        Resolution(name: "1920x1200", pointSize: PointSize(widthInPoints: 1920, heightInPoints: 1200), label: "WUXGA"),
+        Resolution(name: "1920x1080", pointSize: PointSize(widthInPoints: 1920, heightInPoints: 1080), label: "1080p / Full HD"),
+        Resolution(name: "1600x1200", pointSize: PointSize(widthInPoints: 1600, heightInPoints: 1200), label: "UXGA"),
+        Resolution(name: "1280x720",  pointSize: PointSize(widthInPoints: 1280, heightInPoints: 720),  label: "720p / HD"),
+        Resolution(name: "1024x768",  pointSize: PointSize(widthInPoints: 1024, heightInPoints: 768),  label: "XGA"),
+        Resolution(name: "640x480",   pointSize: PointSize(widthInPoints: 640,  heightInPoints: 480),  label: "VGA"),
     ]
 }

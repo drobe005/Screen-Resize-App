@@ -35,37 +35,39 @@ struct MenuBarContentView: View {
                 if let failure = model.failureMessage {
                     FailureBannerView(message: failure)
                 }
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 10) {
-                        let favorites = model.favoriteOptions()
-                        if !favorites.isEmpty {
-                            SizeSection(
-                                heading: "Favorites",
-                                options: favorites,
-                                symbol: "star.fill",
-                                apply: model.apply
-                            )
-                        }
-
-                        let custom = model.customOptions()
-                        if !custom.isEmpty {
-                            SizeSection(
-                                heading: "Custom Sizes",
-                                options: custom,
-                                symbol: nil,
-                                apply: model.apply
-                            )
-                        }
-
-                        SizeSection(
-                            heading: "Preset Sizes",
-                            options: model.presetOptions(),
-                            symbol: nil,
-                            apply: model.apply
-                        )
-                    }
+                // Deliberately NOT wrapped in a ScrollView. A ScrollView reports
+                // an ideal height of 0 along its scroll axis, and a MenuBarExtra
+                // popover sizes itself to fit its content — so it collapses to
+                // nothing and the entire list disappears. A maxHeight only caps
+                // it, it never gives it a height. The list is bounded (14 presets
+                // plus a handful of favorites and custom sizes), so natural
+                // height is both correct and simpler.
+                let favorites = model.favoriteOptions()
+                if !favorites.isEmpty {
+                    SizeSection(
+                        heading: "Favorites",
+                        options: favorites,
+                        symbol: "star.fill",
+                        apply: model.apply
+                    )
                 }
-                .frame(maxHeight: 420)
+
+                let custom = model.customOptions()
+                if !custom.isEmpty {
+                    SizeSection(
+                        heading: "Custom Sizes",
+                        options: custom,
+                        symbol: nil,
+                        apply: model.apply
+                    )
+                }
+
+                SizeSection(
+                    heading: "Preset Sizes",
+                    options: model.presetOptions(),
+                    symbol: nil,
+                    apply: model.apply
+                )
 
                 Divider()
                 footer

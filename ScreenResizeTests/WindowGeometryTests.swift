@@ -291,4 +291,30 @@ final class WindowGeometryTests: XCTestCase {
         assertFrame(result.frame, 0, 25, 2000, 1075)
         XCTAssertEqual(result.adjustment, .none)
     }
+
+    // MARK: - P. sizeThatFits (safety net for a display change mid-menu)
+
+    func testP1_sizeAlreadyFittingIsUnchanged() {
+        let size = PointSize(widthInPoints: 1000, heightInPoints: 600)
+        XCTAssertEqual(WindowGeometry.sizeThatFits(size, in: primary), size)
+    }
+
+    func testP2_oversizedWidthAndHeightAreBothCapped() {
+        let result = WindowGeometry.sizeThatFits(
+            PointSize(widthInPoints: 5000, heightInPoints: 5000), in: primary)
+        assertSize(result, 2000, 1075)
+    }
+
+    func testP3_onlyTheOverflowingDimensionIsCapped() {
+        // Unlike largestFittingSize, this does NOT preserve aspect ratio: it is a
+        // last-resort clamp, and the caller must report that it happened.
+        let result = WindowGeometry.sizeThatFits(
+            PointSize(widthInPoints: 5000, heightInPoints: 600), in: primary)
+        assertSize(result, 2000, 600)
+    }
+
+    func testP4_exactlyEqualIsUnchanged() {
+        let size = PointSize(widthInPoints: 2000, heightInPoints: 1075)
+        XCTAssertEqual(WindowGeometry.sizeThatFits(size, in: primary), size)
+    }
 }

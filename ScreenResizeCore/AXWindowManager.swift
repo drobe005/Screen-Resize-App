@@ -35,6 +35,14 @@ public final class AXWindowManager: WindowManaging {
 
     public init() {}
 
+    /// How long to wait between readback attempts when a window has not yet
+    /// settled, in seconds. Cumulative worst case is 140ms, which is under the
+    /// ~200ms threshold where a response to a click starts to feel laggy.
+    ///
+    /// Only consulted when the first readback disagrees, so a well-behaved app
+    /// pays nothing.
+    private static let settleDelays: [TimeInterval] = [0.02, 0.04, 0.08]
+
     // MARK: - Permission
 
     public func isProcessTrusted() -> Bool {
@@ -94,7 +102,16 @@ public final class AXWindowManager: WindowManaging {
         guard let element = value, CFGetTypeID(element) == AXUIElementGetTypeID() else {
             throw WindowManagerError.noFocusedWindow
         }
-        return AXWindowHandle(element: element as! AXUIElement)
+        let windowElement = element as! AXUIElement
+
+        // Clicking the desktop makes Finder frontmost, and Finder then reports
+        // the desktop itself as its focused window. Resizing that is meaningless
+        // and the failure it produces is baffling, so treat it as "no window".
+        if isFinderDesktop(windowElement, processIdentifier: application.processIdentifier) {
+            throw WindowManagerError.noFocusedWindow
+        }
+
+        return AXWindowHandle(element: windowElement)
     }
 
     // MARK: - Reading
@@ -122,7 +139,22 @@ public final class AXWindowManager: WindowManaging {
 
         // Never trust the AXError returned by a write. Read the window back and
         // compare. See CLAUDE.md, hard constraint 3.
-        let after = PointFrame(origin: try readOrigin(element), size: try readSize(element))
+        //
+        // Not all apps resize synchronously. Electron, Java/Swing and some
+        // Catalyst apps acknowledge the write and then update their frame a few
+        // milliseconds later, so an immediate readback catches the OLD frame and
+        // we would report "refused to resize" for a window that visibly did
+        // resize. Poll briefly before concluding anything. The budget is small
+        // enough to stay imperceptible on a deliberate menu click, and we exit
+        // the moment the window agrees.
+        var after = PointFrame(origin: try readOrigin(element), size: try readSize(element))
+        if !after.isApproximately(frame) {
+            for delay in Self.settleDelays {
+                Thread.sleep(forTimeInterval: delay)
+                after = PointFrame(origin: try readOrigin(element), size: try readSize(element))
+                if after.isApproximately(frame) { break }
+            }
+        }
 
         if after.isApproximately(frame) {
             return .exact
@@ -136,6 +168,22 @@ public final class AXWindowManager: WindowManaging {
     }
 
     // MARK: - AX plumbing
+
+    /// Whether this window is the Finder desktop rather than a real Finder window.
+    ///
+    /// Identified the same way Raycast's window-sizer does it: Finder, with an
+    /// empty window title. Every genuine Finder window is titled with its folder,
+    /// so an untitled one is the desktop.
+    private func isFinderDesktop(_ window: AXUIElement, processIdentifier: pid_t) -> Bool {
+        guard let bundleID = NSRunningApplication(processIdentifier: processIdentifier)?
+            .bundleIdentifier,
+            bundleID == "com.apple.finder"
+        else { return false }
+
+        var title: CFTypeRef?
+        AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &title)
+        return ((title as? String) ?? "").isEmpty
+    }
 
     private func axElement(of window: WindowHandle) throws -> AXUIElement {
         guard let window = window as? AXWindowHandle else {

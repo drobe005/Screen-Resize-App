@@ -198,6 +198,101 @@ final class MenuBarModelTests: XCTestCase {
         XCTAssertEqual(snapshot.applicationName, "Safari")
     }
 
+    // MARK: - Q. Clamp surfacing and position recovery
+
+    /// A display large enough that every catalog preset fits, used to get an
+    /// option marked enabled before swapping the display out from under it.
+    private var hugeDisplay: DisplayGeometry {
+        DisplayGeometry(
+            visibleFrameInAppKitPoints: AppKitPointRect(
+                origin: AppKitPointOrigin(xInPoints: 0, yInPoints: 0),
+                size: PointSize(widthInPoints: 10000, heightInPoints: 10000)
+            ),
+            backingScaleFactor: 2.0,
+            primaryDisplayHeightInPoints: 10000
+        )
+    }
+
+    func testQ1_aShrinkToFitIsReportedRatherThanAbsorbedSilently() {
+        // Reproduces the display-changed-since-menu-open case: 7680x4320 is
+        // enabled against the huge display, then the window is on the small one
+        // by the time it is clicked.
+        screens.configuredDisplays = [hugeDisplay]
+        model.refresh()
+        let option = option(named: "7680x4320")
+        XCTAssertTrue(option.isEnabled, "precondition: enabled against the huge display")
+
+        screens.configuredDisplays = [Fixtures.primary]
+        model.apply(option)
+
+        let message = model.failureMessage ?? ""
+        XCTAssertTrue(message.contains("Shrunk to"), "A silent shrink violates constraint 4: \(message)")
+        XCTAssertTrue(message.contains("2000 × 1075 pt"), message)
+    }
+
+    func testQ2_aShrunkWindowIsCentredForTheSizeItActuallyGot() {
+        // A regression lock, not a bug fix. Centring-then-clamping and
+        // fitting-then-centring turn out to be equivalent: when a dimension is
+        // clamped to the full visible extent there is zero slack left to centre
+        // within, so both land on the same coordinate. Verified numerically
+        // across the oversize cases before this test was written. The current
+        // order is kept because it reads in the order it happens and makes the
+        // "was it shrunk?" comparison fall out naturally.
+        screens.configuredDisplays = [hugeDisplay]
+        model.refresh()
+        let option = option(named: "7680x4320")
+
+        screens.configuredDisplays = [Fixtures.primary]
+        model.apply(option)
+
+        let fitted = PointSize(widthInPoints: 2000, heightInPoints: 1075)
+        XCTAssertEqual(windowManager.appliedFrames.count, 1)
+        XCTAssertEqual(windowManager.appliedFrames[0].size, fitted)
+        XCTAssertEqual(
+            windowManager.appliedFrames[0].origin,
+            WindowGeometry.centeredOriginInAXSpace(for: fitted, in: Fixtures.primary),
+            "Must be centred for the fitted size, not the requested one"
+        )
+    }
+
+    func testQ3_aPartialResizeIsReCentredForTheSizeTheWindowTook() {
+        // Borrowed from Raycast's window-sizer: when an app enforces its own
+        // minimum, the window is left centred for a size it never adopted.
+        let stubborn = PointSize(widthInPoints: 1000, heightInPoints: 700)
+        windowManager.applyBehavior = .clamp(to: stubborn)
+        model.refresh()
+
+        model.apply(enabledOption(named: "1280x720"))
+
+        XCTAssertEqual(windowManager.appliedFrames.count, 2,
+                       "Expected a second write re-centring the window")
+        XCTAssertEqual(
+            windowManager.appliedFrames[1].origin,
+            WindowGeometry.centeredOriginInAXSpace(for: stubborn, in: Fixtures.primary),
+            "Second write must centre for the size the window actually took"
+        )
+        XCTAssertEqual(windowManager.appliedFrames[1].size, stubborn)
+    }
+
+    func testQ4_reCentringDoesNotMaskThePartialResizeMessage() {
+        windowManager.applyBehavior = .clamp(
+            to: PointSize(widthInPoints: 1000, heightInPoints: 700))
+        model.refresh()
+        model.apply(enabledOption(named: "1280x720"))
+
+        let message = model.failureMessage ?? ""
+        XCTAssertTrue(message.contains("1000 × 700 pt"), message)
+        XCTAssertTrue(message.contains("640 × 360 pt"), message)
+    }
+
+    func testQ5_anExactResizeReportsNothing() {
+        model.refresh()
+        model.apply(enabledOption(named: "1280x720"))
+
+        XCTAssertNil(model.failureMessage)
+        XCTAssertEqual(windowManager.appliedFrames.count, 1, "No recovery write when exact")
+    }
+
     // MARK: - Helpers
 
     private func option(named name: String) -> ResolutionOption {

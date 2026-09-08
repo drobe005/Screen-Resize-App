@@ -221,6 +221,22 @@ public enum WindowGeometry {
         return PointFrame(origin: topLeft, size: visible.size)
     }
 
+    /// `size` reduced so it cannot exceed the display's visible area, without
+    /// preserving aspect ratio.
+    ///
+    /// A safety net, not the primary fit path: options that do not fit are
+    /// disabled in the menu, so this only bites when the window moved to a
+    /// different display between the menu opening and the click. Callers must
+    /// compare the result against their input and tell the user if it shrank —
+    /// CLAUDE.md constraint 4 forbids absorbing that silently.
+    public static func sizeThatFits(_ size: PointSize, in display: DisplayGeometry) -> PointSize {
+        let visible = display.visibleFrameInAppKitPoints.size
+        return PointSize(
+            widthInPoints: min(size.widthInPoints, visible.widthInPoints),
+            heightInPoints: min(size.heightInPoints, visible.heightInPoints)
+        )
+    }
+
     /// The display a window most occupies, by overlapping area.
     ///
     /// Area rather than the window's centre: a window dragged across a boundary

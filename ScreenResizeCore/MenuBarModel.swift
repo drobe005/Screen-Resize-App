@@ -339,18 +339,38 @@ public final class MenuBarModel: ObservableObject {
                 return
             }
 
-            let size = WindowGeometry.targetPointSize(
+            let requestedSize = WindowGeometry.targetPointSize(
                 for: option.resolution, backingScaleFactor: display.backingScaleFactor
             )
-            let origin = WindowGeometry.centeredOriginInAXSpace(for: size, in: display)
-            let (target, _) = WindowGeometry.clamped(
-                PointFrame(origin: origin, size: size), to: display
+
+            // Fit the SIZE first, then centre for whatever size survived.
+            // Centring for the requested size and clamping afterwards leaves the
+            // window off-centre exactly when it was shrunk, because the origin
+            // was computed for a box that no longer exists.
+            let fittedSize = WindowGeometry.sizeThatFits(requestedSize, in: display)
+            let origin = WindowGeometry.centeredOriginInAXSpace(for: fittedSize, in: display)
+            let (target, adjustment) = WindowGeometry.clamped(
+                PointFrame(origin: origin, size: fittedSize), to: display
             )
+
+            // Never absorb a shrink silently. CLAUDE.md constraint 4.
+            var note: String? = fittedSize == requestedSize
+                ? nil
+                : "Shrunk to \(Self.describe(fittedSize)) to fit this display."
+            if note == nil, adjustment == .resized || adjustment == .movedAndResized {
+                note = "Adjusted to \(Self.describe(target.size)) to fit this display."
+            }
 
             switch try windowManager.applyFrame(target, to: window) {
             case .exact:
-                failureMessage = nil
+                failureMessage = note
+
             case .partial(let requested, let actual):
+                // The window took a size of its own choosing — a minimum width,
+                // a character-cell grid, whatever. It is now centred for a size
+                // it never adopted, so re-centre for the size it actually has.
+                recentre(window: window, at: actual, on: display)
+
                 // A partial resize is not silent: CLAUDE.md constraint 3.
                 failureMessage = "\(applicationName) resized to "
                     + "\(Self.describe(actual)) instead of \(Self.describe(requested))."
@@ -364,6 +384,19 @@ public final class MenuBarModel: ObservableObject {
         } catch {
             failureMessage = "\(error)"
         }
+    }
+
+    /// Re-centres a window that ended up a different size than requested.
+    ///
+    /// Best effort: the window has already been resized, so a failure here means
+    /// it is merely off-centre, and reporting that on top of the size mismatch
+    /// would be noise. The original outcome message is what matters.
+    private func recentre(window: WindowHandle, at size: PointSize, on display: DisplayGeometry) {
+        let origin = WindowGeometry.centeredOriginInAXSpace(for: size, in: display)
+        let (frame, _) = WindowGeometry.clamped(
+            PointFrame(origin: origin, size: size), to: display
+        )
+        _ = try? windowManager.applyFrame(frame, to: window)
     }
 
     private static func describe(_ size: PointSize) -> String {

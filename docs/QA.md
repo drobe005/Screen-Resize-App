@@ -2,7 +2,7 @@
 
 Run before any release. Target: **under 15 minutes**. Times per case are budgets, not guesses.
 
-Automated tests cover the pure logic (`./scripts/test.sh`, 128 tests). This checklist covers
+Automated tests cover the pure logic (`./scripts/test.sh`, 137 tests). This checklist covers
 only what a machine cannot: real windows, real apps, real permission dialogs.
 
 ---
@@ -90,7 +90,7 @@ Use a fixed-size window. **System Settings** works; so does most apps' About box
 **A silent no-op here is the worst possible outcome** and is an immediate release blocker.
 Silent failure is the one thing CLAUDE.md calls out as unacceptable.
 
-⚠️ The message never states the size the window actually is — see Known Issue **5**.
+⚠️ The message never states the size the window actually is — see Known Issue **3**.
 
 ## 3. Electron app (2 min)
 
@@ -105,8 +105,9 @@ Use VS Code, Slack, Discord, or Figma.
 app enforces a minimum size — that is a truthful partial result.
 
 ⚠️ **A `refused to resize` banner while the window visibly did resize is a bug**, not a pass.
-That is Known Issue **3** — there is no settle time before the readback. Note which app and
-whether the window actually moved.
+The readback now retries for up to 140ms to let async apps settle, so this should be rare. If it
+still happens, note which app and whether the window actually moved — the settle budget may need
+raising for that app.
 
 ## 4. Full-screen window (1 min)
 
@@ -120,7 +121,7 @@ whether the window actually moved.
 - The full-screen window is unchanged, and macOS does not leave full screen.
 
 ⚠️ Neither message mentions full screen. The app has no full-screen detection at all — see
-Known Issue **4**. Both outcomes above are a pass *today*; neither is good.
+Known Issue **2**. Both outcomes above are a pass *today*; neither is good.
 
 ## 5. Window straddling two displays (1 min — needs a second display)
 
@@ -152,7 +153,7 @@ always relative to whichever display the window is on, with no toggle involved.
 **Expected:** the same preset's availability and target size change purely because the display
 changed, with no setting touched. Getting the identical target size on both displays is the bug.
 
-⚠️ Do not leave the menu open while dragging the window between displays — see Known Issue **7**.
+⚠️ Do not leave the menu open while dragging the window between displays — see Known Issue **5**.
 
 ## 7. Same preset, two displays, verified against a real screen recording (3 min — needs a second display)
 
@@ -247,63 +248,52 @@ number.
 
 # Known broken or unhandled
 
-Findings from reading the code as committed at `66b6221`. Ordered by severity.
+Findings from reading the code, updated after the resize-reliability work. Ordered by severity.
 
-### 1. A clamped resize is silently shrunk — violates CLAUDE.md constraint 4
-
-`MenuBarModel.swift:356` — `let (target, _) = WindowGeometry.clamped(...)`.
-
-`ClampAdjustment` was built in Phase 3 precisely so a shrink-to-fit could never be silent, and
-`apply()` discards it. If a target does not fit the display at click time, the window is quietly
-resized to something the user did not choose, with no banner. This is a self-inflicted regression
-against a hard constraint. **Most likely to bite in case 5 or 6.**
-
-### 2. Opening Settings erases the failure banner
+### 1. Opening Settings erases the failure banner
 
 `MenuBarContentView.swift` subscribes to `NSWindow.didBecomeKeyNotification` for **any** window in
 the process, and calls `model.refresh()`, which clears `failureMessage`. So the sequence
 "resize refused → open Settings to investigate" wipes the explanation. It also re-runs the whole
 AX read whenever Settings or onboarding takes focus, menu closed or not.
 
-### 3. No settle time before the readback — false rejections likely on Electron
-
-`AXWindowManager.applyFrame` reads the frame back **immediately** after the write loop, with no
-delay or retry. Apps that resize asynchronously (Electron, Java/Swing) can still report their old
-frame at that instant, producing `refused to resize` for a window that visibly did resize. This is
-the most likely cause of a bogus failure in case 3.
-
-### 4. No full-screen or minimized detection
+### 2. No full-screen or minimized detection
 
 `kAXFullScreen` and `kAXMinimized` are never read anywhere. A full-screen window degrades to a
 generic "refused to resize", and a minimized window's off-screen AX position produces
 `That window is not on any display.` Both are truthful but unhelpful, and CLAUDE.md explicitly
 lists full screen as a rejection cause worth naming.
 
-### 5. The rejection message throws away the actual size
+*Partly addressed:* the Finder **desktop** is now detected (Finder + empty window title) and
+reported as "no resizable window" rather than being resized. Full screen and minimized are still
+undetected.
+
+### 3. The rejection message throws away the actual size
 
 `apply()` catches `resizeRejected(let requested, _)` and discards `actual`. The error carries the
 window's real size and the UI never shows it, so the banner cannot say what the window *is*, only
 what it refused to become.
 
-### 6. Hotkey failures are invisible until you open the menu
+### 4. Hotkey failures are invisible until you open the menu
 
 `applyFavoriteSlot` sets `failureMessage` for an empty slot, an out-of-range slot, or a size too
 large — but a hotkey fires with no menu open, so nothing is displayed. Pressing a shortcut bound
 to an empty slot appears to do nothing at all.
 
-### 7. `isEnabled` goes stale if the window changes display while the menu is open
+### 5. `isEnabled` goes stale if the window changes display while the menu is open
 
 Options are computed against the display found at menu-open; `apply()` re-resolves the display at
 click time. Move the window to a different-scale display with the menu open and an option shown as
-enabled may no longer fit — at which point issue **1** silently shrinks it.
+enabled may no longer fit — it is now shrunk to fit **and the shrink is reported**, so this
+degrades gracefully rather than silently.
 
-### 8. A hotkey pressed while ScreenResize's own window is focused targets an unseen window
+### 6. A hotkey pressed while ScreenResize's own window is focused targets an unseen window
 
 The frontmost tracker deliberately ignores ScreenResize itself, so a shortcut pressed while
 Settings or onboarding has focus resizes whatever app was active before — a window the user is not
 looking at.
 
-### 9. Duplicate custom size blames the wrong list
+### 7. Duplicate custom size blames the wrong list
 
 `CustomSizeError.duplicate` always reads `<name> is already in your custom sizes.`, but the check
 runs against `allResolutions`, which includes the shipped catalog. Adding `1920x1080` — a built-in

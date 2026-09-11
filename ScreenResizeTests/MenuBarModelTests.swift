@@ -102,11 +102,11 @@ final class MenuBarModelTests: XCTestCase {
                        PointSize(widthInPoints: 2000, heightInPoints: 1075))
     }
 
-    func testI9_fittingPresetIsEnabledAndShowsItsFriendlyLabel() {
+    func testI9_fittingPresetIsEnabledAndShowsJustItsSize() {
         model.refresh()
         let option = option(named: "1280x720")
         XCTAssertFalse(option.exceedsDisplay)
-        XCTAssertEqual(option.menuLabel, "1280x720 — 720p / HD")
+        XCTAssertEqual(option.menuLabel, "1280x720")
     }
 
     func testI10_aPresetIsTheSamePointSizeOnEveryDisplay() {

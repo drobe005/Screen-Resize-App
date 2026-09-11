@@ -319,7 +319,7 @@ public final class MenuBarModel: ObservableObject {
         if exceedsDisplay {
             label = "\(resolution.name) — fills this display"
         } else {
-            label = resolution.label.map { "\(resolution.name) — \($0)" } ?? resolution.name
+            label = resolution.name
         }
 
         return ResolutionOption(

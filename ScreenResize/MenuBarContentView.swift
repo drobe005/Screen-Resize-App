@@ -39,7 +39,7 @@ struct MenuBarContentView: View {
                 // an ideal height of 0 along its scroll axis, and a MenuBarExtra
                 // popover sizes itself to fit its content — so it collapses to
                 // nothing and the entire list disappears. A maxHeight only caps
-                // it, it never gives it a height. The list is bounded (14 presets
+                // it, it never gives it a height. The list is bounded (15 presets
                 // plus a handful of favorites and custom sizes), so natural
                 // height is both correct and simpler.
                 let favorites = model.favoriteOptions()

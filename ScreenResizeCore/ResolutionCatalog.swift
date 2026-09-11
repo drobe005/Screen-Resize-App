@@ -5,8 +5,9 @@ import CoreGraphics
 /// UI code reads from here and never spells out a resolution of its own. See
 /// CLAUDE.md, "Resolution presets live in a single data model".
 ///
-/// Every value is in physical pixels. The list is deliberately flat and ordered
-/// largest first: grouping by aspect ratio was removed because it added a layer
+/// Every value is in points, applied as-is. The list is deliberately flat and
+/// ordered largest first — by width, then height — so the menu needs no sorting
+/// of its own: grouping by aspect ratio was removed because it added a layer
 /// of navigation without adding information — the dimensions already tell you
 /// the shape, and a hover to reach a size is a hover too many.
 public enum ResolutionCatalog {
@@ -25,6 +26,7 @@ public enum ResolutionCatalog {
         Resolution(name: "1600x1200", pointSize: PointSize(widthInPoints: 1600, heightInPoints: 1200), label: "UXGA"),
         Resolution(name: "1280x720",  pointSize: PointSize(widthInPoints: 1280, heightInPoints: 720),  label: "720p / HD"),
         Resolution(name: "1024x768",  pointSize: PointSize(widthInPoints: 1024, heightInPoints: 768),  label: "XGA"),
+        Resolution(name: "960x1080",  pointSize: PointSize(widthInPoints: 960,  heightInPoints: 1080)),
         Resolution(name: "640x480",   pointSize: PointSize(widthInPoints: 640,  heightInPoints: 480),  label: "VGA"),
     ]
 }

@@ -13,7 +13,7 @@ final class ResolutionCatalogTests: XCTestCase {
             (7680, 4320), (3840, 2160), (3440, 1440), (3000, 2000),
             (2560, 1600), (2560, 1440), (2560, 1080), (2160, 1440),
             (1920, 1200), (1920, 1080), (1600, 1200), (1280, 720),
-            (1024, 768), (640, 480),
+            (1024, 768), (960, 1080), (640, 480),
         ]
         let actual = all.map {
             (Int($0.pointSize.widthInPoints), Int($0.pointSize.heightInPoints))

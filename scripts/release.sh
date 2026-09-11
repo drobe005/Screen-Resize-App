@@ -26,6 +26,7 @@ echo "Step 1/4: Building and notarizing..."
 # Copy to Applications for easier access
 echo ""
 echo "Step 2/4: Copying app to ~/Applications..."
+rm -rf ~/Applications/ScreenResize.app
 cp -R "/Users/deiondrickroberts/Library/Developer/Xcode/DerivedData/ScreenResize/Build/Products/Release/ScreenResize.app" ~/Applications/
 
 # Create ZIP
@@ -40,9 +41,16 @@ echo "✅ Created: $ZIP_PATH"
 echo ""
 echo "Step 4/4: Creating GitHub release..."
 cd "/Users/deiondrickroberts/Documents/Development/Screen Scaling Tool"
+
+PRERELEASE_FLAG=()
+if [[ "$VERSION" == *beta* || "$VERSION" == *alpha* || "$VERSION" == *rc* ]]; then
+    PRERELEASE_FLAG=(--prerelease)
+fi
+
 gh release create "$VERSION" ~/Applications/"ScreenResize-${VERSION}.zip" \
     --title "$VERSION" \
-    --notes "$RELEASE_NOTES"
+    --notes "$RELEASE_NOTES" \
+    "${PRERELEASE_FLAG[@]}"
 
 echo ""
 echo "✅ Release complete!"
